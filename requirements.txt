@@ -1,0 +1,8 @@
+numpy
+Pillow
+pyquaternion
+html-testRunner
+setuptools
+natsort
+torch
+opencv-python
