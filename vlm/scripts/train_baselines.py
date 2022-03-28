@@ -428,17 +428,17 @@ if __name__=="__main__":
     
     parser = argparse.ArgumentParser(description='')
     #dataset
-    parser.add_argument('--data_dir', type=str, default=',,/vlmbench')
+    parser.add_argument('--data_dir', type=str, default='../vlmbench')
     parser.add_argument('--setd', type=str, default='train')
-    parser.add_argument('--img_size',nargs='+', type=int, default=[256,256])
-    parser.add_argument('--batch_size', type=int, default=64, metavar='N',
-                        help='input batch size for training (default: 2)')
-    parser.add_argument('--workers', type=int, default=128)
+    parser.add_argument('--img_size',nargs='+', type=int, default=[224, 224])
+    parser.add_argument('--batch_size', type=int, default=8, metavar='N',
+                        help='input batch size for training (default: 8)')
+    parser.add_argument('--workers', type=int, default=32)
     parser.add_argument('--preprocess', action='store_true', 
                 help="whether preprocess the data. Next time can directly use. Add if you don't want it.")
     parser.add_argument('--unused_camera_list', nargs='+', default=['left_shoulder', 'right_shoulder', 'overhead','wrist'])
     parser.add_argument('--use_fail_cases', action='store_true', help="add if use the fail cases")
-    parser.add_argument('--sample_numbers', type=int, default=40, help="downsample from total demonstrations")
+    parser.add_argument('--sample_numbers', type=int, default=0, help="downsample from total demonstrations")
     parser.add_argument('--pin_memory', action='store_true', help="do not use if the RAM is small")
     parser.add_argument('--train_tasks', nargs='+', type=str, default = None)
 
