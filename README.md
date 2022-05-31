@@ -13,6 +13,7 @@ Users can use AMSolver to run the current tasks in the VLMbench or build new tas
 pip install -r requirements.txt
 pip install .
 ```
+(meshlab for import new model; copy new simAddOnScript_PyRep.lua to Coppeliasim)
 
 In the vlm folder, we have predefined some task categories and instance tasks for VLMbench. If you want to customize your own task, the scripts in the tools folder can be helpful.
 

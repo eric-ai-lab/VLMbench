@@ -6,3 +6,5 @@ setuptools
 natsort
 torch
 opencv-python
+scipy
+open3d

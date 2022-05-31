@@ -9,7 +9,7 @@ from amsolver.const import colors
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from amsolver.backend.task import Task
-from amsolver.backend.utils import GenerateGraspPoints, Task_step, find_trajectory_from_success_grasps, get_local_grasp_pose, get_sorted_grasp_pose, scale_object, select_color
+from amsolver.backend.utils import scale_object, select_color
 from vlm.tasks.stack_cubes import StackCubes
 from pyrep.const import ObjectType, PrimitiveShape
 

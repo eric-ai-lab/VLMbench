@@ -11,7 +11,6 @@ from amsolver.const import colors
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from pyrep.objects.joint import Joint
-from amsolver.backend.utils import GenerateGraspPoints, Task_step, find_trajectory_from_success_grasps, get_local_grasp_pose, get_sorted_grasp_pose
 
 door_states = {
     "open":["Fully close", "Slightly close"],

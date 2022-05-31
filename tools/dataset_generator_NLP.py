@@ -25,20 +25,20 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '../vlmbench/train',
+                    '/home/kz-lab/Documents/research/dataset/VLMbench/val/unseen',
                     'Where to save the demos.')
-flags.DEFINE_list('tasks', ['pour_demo_color'],
+flags.DEFINE_list('tasks', ['pick_cube_color'],
                   'The tasks to collect. If empty, all tasks are collected.')
 flags.DEFINE_list('image_size', [224, 224],
                   'The size of the images tp save.')
 flags.DEFINE_enum('renderer',  'opengl', ['opengl', 'opengl3'],
                   'The renderer to use. opengl does not include shadows, '
                   'but is faster.')
-flags.DEFINE_integer('processes', 64,
+flags.DEFINE_integer('processes', 4,
                      'The number of parallel processes during collection.')
-flags.DEFINE_integer('episodes_per_task', 20,
+flags.DEFINE_integer('episodes_per_task', 5,
                      'The number of episodes to collect per task.')
-flags.DEFINE_integer('variations', -1,
+flags.DEFINE_integer('variations', 1,
                      'Number of variations to collect per task. -1 for all.')
 
 
