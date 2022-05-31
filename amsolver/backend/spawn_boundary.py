@@ -163,6 +163,7 @@ class SpawnBoundary(object):
         set rotation_range to be (0, 0) if you don't want it to rotate
         :return:
         """
+        begin_pose = obj.get_pose()
         collision_fails = boundary_fails = self.MAX_SAMPLES
         while collision_fails > 0 and boundary_fails > 0:
             sampled_boundary = np.random.choice(self._boundaries,
@@ -177,6 +178,7 @@ class SpawnBoundary(object):
                 boundary_fails -= 1
             else:
                 break
+            obj.set_pose(begin_pose)
         if boundary_fails <= 0:
             raise BoundaryError('Could not place within boundary.'
                                 'Perhaps the object is too big for it?')
