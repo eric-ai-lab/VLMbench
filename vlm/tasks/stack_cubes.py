@@ -1,13 +1,14 @@
 from typing import List
 import numpy as np
 import os
+import random
 from amsolver.backend.task import Task
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.const import ObjectType, PrimitiveShape
 from amsolver.backend.unit_tasks import T0_ObtainControl, T1_MoveObjectGoal, TargetSpace, VLM_Object
-from amsolver.const import colors
+from amsolver.const import colors, object_shapes
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from amsolver.backend.task import Task
@@ -80,7 +81,8 @@ class StackCubes(Task):
         return [descriptions]
 
     def import_objects(self, number=4):
-        model_path = self.model_dir+"cube/cube_normal/cube_normal.ttm"
+        selected_obj = random.choice(list(object_shapes.keys()))
+        model_path = self.model_dir+object_shapes[selected_obj]['path']
         self.cube_num = number
         for i in range(self.cube_num):
             cube = VLM_Object(self.pyrep, model_path, i)

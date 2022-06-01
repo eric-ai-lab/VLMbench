@@ -530,5 +530,50 @@ if __name__=="__main__":
             }
         ]
     }
-    modifer.extra_from_ttm(pencile1_config,"./vlm/object_models/pencil/pencil1_original.ttm")
+    letters_config = {
+        "class": "letters",
+        "name": "letter_v",
+        "articulated": False,
+        "constraints": None,
+        "highest_part":0,
+        "manipulated_part":[0],
+        "parts":[
+            {
+                "name": "letter_v",
+                "model_path": "./vlm/object_models/letters/letter_v/letter_v.dae",
+                "graspable": True,
+                "local_grasp_pose_path":None,
+                "property":{
+                    "shape": "letter of 'v'",
+                    "size": "medium",
+                    "color": None,
+                    "relative_pos": None
+                }
+            }
+        ]
+    }
+    basics_config = {
+        "class": "basic_shapes",
+        "name": "flower",
+        "articulated": False,
+        "constraints": None,
+        "highest_part":0,
+        "manipulated_part":[0],
+        "parts":[
+            {
+                "name": "flower",
+                "model_path": "./vlm/object_models/basic_shapes/flower/flower.dae",
+                "graspable": True,
+                "local_grasp_pose_path":None,
+                "property":{
+                    "shape": "flower",
+                    "size": "medium",
+                    "color": None,
+                    "relative_pos": None
+                }
+            }
+        ]
+    }
+    modifer.import_model(letters_config)
+    # modifer.extra_from_ttm(pencile1_config,"./vlm/object_models/pencil/pencil1_original.ttm")
     modifer.pr.shutdown()

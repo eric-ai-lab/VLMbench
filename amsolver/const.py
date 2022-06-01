@@ -53,3 +53,45 @@ unseen = [
     ('black', (0.0, 0.0, 0.0)),
     ('white', (1.0, 1.0, 1.0)),
 ]
+
+object_shapes = {
+    "star":{
+        "path":"star/star_normal/star_normal.ttm"
+    },
+    "triangular":{
+        "path":"triangular/triangular_normal/triangular_normal.ttm"
+    },
+    "cylinder":{
+        "path":"cylinder/cylinder_normal/cylinder_normal.ttm"
+    },
+    "cube":{
+        "path":"cube/cube_basic/cube_basic.ttm"
+    },
+    "letter_r":{
+        "path":"letters/letter_r/letter_r.ttm"
+    },
+    "letter_a":{
+        "path":"letters/letter_a/letter_a.ttm"
+    },
+    "letter_v":{
+        "path":"letters/letter_v/letter_v.ttm"
+    },
+    "pentagon":{
+        "path":"basic_shapes/pentagon/pentagon.ttm"
+    }
+}
+
+unseen_objects_shapes = {
+    "moon":{
+        "path":"moon/moon_normal/moon_normal.ttm"
+    },
+    "letter_t":{
+        "path":"letters/letter_t/letter_t.ttm"
+    },
+    "cross":{
+        "path":"basic_shapes/cross/cross.ttm"
+    },
+    "flower":{
+        "path":"basic_shapes/flower/flower.ttm"
+    }
+}

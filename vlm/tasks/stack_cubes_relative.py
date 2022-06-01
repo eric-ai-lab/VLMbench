@@ -5,7 +5,7 @@ from amsolver.backend.task import Task
 from pyrep.objects.shape import Shape
 from pyrep.objects.proximity_sensor import ProximitySensor
 from amsolver.backend.unit_tasks import VLM_Object
-from amsolver.const import colors
+from amsolver.const import colors, object_shapes
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from amsolver.backend.task import Task
@@ -13,23 +13,23 @@ from amsolver.backend.utils import get_relative_position_xy, get_sorted_grasp_po
 from vlm.tasks.stack_cubes import StackCubes
 from pyrep.const import ObjectType, PrimitiveShape
 
-object_dict = {
-            "star":{
-                "path":"star/star_normal/star_normal.ttm"
-            },
-            "moon":{
-                "path":"moon/moon_normal/moon_normal.ttm"
-            },
-            "triangular":{
-                "path":"triangular/triangular_normal/triangular_normal.ttm"
-            },
-            "cylinder":{
-                "path":"cylinder/cylinder_normal/cylinder_normal.ttm"
-            },
-            "cube":{
-                "path":"cube/cube_basic/cube_basic.ttm"
-            }
-        }
+# object_dict = {
+#             "star":{
+#                 "path":"star/star_normal/star_normal.ttm"
+#             },
+#             "moon":{
+#                 "path":"moon/moon_normal/moon_normal.ttm"
+#             },
+#             "triangular":{
+#                 "path":"triangular/triangular_normal/triangular_normal.ttm"
+#             },
+#             "cylinder":{
+#                 "path":"cylinder/cylinder_normal/cylinder_normal.ttm"
+#             },
+#             "cube":{
+#                 "path":"cube/cube_basic/cube_basic.ttm"
+#             }
+#         }
 relative_pos_list = list(itertools.product(["left", "right", "front", "rear"], repeat=2))
 class StackCubesRelative(StackCubes):
 
@@ -59,12 +59,12 @@ class StackCubesRelative(StackCubes):
         return len(relative_pos_list)
     
     def import_objects(self, num):
-        object_numbers = [2]*len(object_dict)
-        self.shape_lib = {obj:[] for obj in object_dict}
+        object_numbers = [2]*len(object_shapes)
+        self.shape_lib = {obj:[] for obj in object_shapes}
         all_objects = []
-        for obj, num in zip(object_dict, object_numbers):
+        for obj, num in zip(object_shapes, object_numbers):
             for i in range(num):
-                model = VLM_Object(self.pyrep, self.model_dir+object_dict[obj]["path"], i)
+                model = VLM_Object(self.pyrep, self.model_dir+object_shapes[obj]["path"], i)
                 relative_factor = scale_object(model, 1.25)
                 if abs(relative_factor-1)>1e-2:
                     local_grasp_pose = model.manipulated_part.local_grasp

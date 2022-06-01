@@ -1,12 +1,9 @@
 from typing import List
 import numpy as np
 import os
-from rlbench.backend.task import Task
 from pyrep.objects.shape import Shape
 from pyrep.objects.proximity_sensor import ProximitySensor
-from rlbench.const import colors
-from rlbench.backend.conditions import DetectedCondition
-from rlbench.backend.spawn_boundary import SpawnBoundary
+from amsolver.const import colors
 from amsolver.backend.unit_tasks import T0_ObtainControl, T1_MoveObjectGoal, T2_MoveObjectConstraints, TargetSpace, VLM_Object
 
 class %s(Task):

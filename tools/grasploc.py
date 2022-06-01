@@ -254,7 +254,7 @@ def define_default_args():
     parser.add_argument('--input_file', type=str, default='./flatbox.ply', help='(PLY file) object 3d model input file to search graspable poses')
     parser.add_argument('--output_file', type=str, default='./graspposes.pkl', help='file to save graspable poses using pickle')
     parser.add_argument('--meshlab_always', type=lambda x:bool(strtobool(x)), default=False, help='always use meshlab to sample regardless of whether there is previous saved file')
-    parser.add_argument('--meshlab_sampling_file', type=str, default='./meshlab_stratified_sampling.mlx', help='sampling script using meshlab')
+    parser.add_argument('--meshlab_sampling_file', type=str, default='./tools/meshlab_stratified_sampling.mlx', help='sampling script using meshlab')
     parser.add_argument('--vis_debug', type=lambda x:bool(strtobool(x)), default=False, help='visualize temporary results for debugging')
     parser.add_argument('--frame_size', type=float, default=0.01, help='coordinate frame size in visualization')
     args = parser.parse_args()
@@ -263,7 +263,7 @@ def define_default_args():
 
 if __name__ == '__main__':
     grasp_pose_path = './vlm/grasp_poses/'
-    ply_file = './vlm/object_models/cube.ply'
+    ply_file = '/home/kz-lab/Documents/research/ravens/ravens/environments/assets/kitting/00.obj'
     args = define_default_args()
     args.input_file = ply_file
     args.output_file = grasp_pose_path + ply_file.split('/')[-1][:-4] + '.pkl'

@@ -2,13 +2,14 @@ from turtle import shape
 from typing import List
 import numpy as np
 import os
+import random
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.proximity_sensor import ProximitySensor
 from amsolver.backend.task import Task
 from amsolver.backend.unit_tasks import T0_ObtainControl, T1_MoveObjectGoal, TargetSpace, VLM_Object
 from amsolver.backend.utils import get_relative_position_xy
-from amsolver.const import colors
+from amsolver.const import colors, object_shapes
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
         
@@ -74,7 +75,9 @@ class PickCube(Task):
     
     def import_objects(self, num=2):
         if not hasattr(self, "model_path"):
-            model_path = self.model_dir+"cube/cube_normal/cube_normal.ttm"
+            selected_obj = random.choice(list(object_shapes.keys()))
+            model_path = self.model_dir+object_shapes[selected_obj]['path']
+            # model_path = self.model_dir+"cube/cube_normal/cube_normal.ttm"
         else:
             model_path = self.model_dir+self.model_path
         for i in range(num):
