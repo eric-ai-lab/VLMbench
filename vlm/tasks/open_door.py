@@ -49,7 +49,7 @@ class OpenDoor(Task):
             self.sample_method()
             init_states = self.get_state()[0]
         
-            self.door.manipulated_part.description = "the handle of door"
+            self.door.manipulated_part.descriptions = "the handle of door"
             door_target_description = "the door"
             if "Slightly" in goal_description:
                 door_target_description += " slightly"
@@ -64,7 +64,7 @@ class OpenDoor(Task):
                 handle_target.set_target(self.door.manipulated_part)
                 handle_task = T2_MoveObjectConstraints(self.robot, self.pyrep, handle_target, self.task_base, fail_times=2, next_task_fuc=door_task.get_path_with_constraints)
                 post_grasp_task = handle_task
-            grasp_task = T0_ObtainControl(self.robot, self.pyrep, self.door.manipulated_part, self.task_base, try_times=100,
+            grasp_task = T0_ObtainControl(self.robot, self.pyrep, self.door.manipulated_part, self.task_base, try_times=200,
                     need_post_grasp=False, grasp_sort_key="horizontal", next_task_fuc=post_grasp_task.get_path_with_constraints)
             if try_times>100:
                 waypoints = grasp_task.get_path(try_ik_sampling=True, ignore_collisions=False)

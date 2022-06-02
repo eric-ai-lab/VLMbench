@@ -54,6 +54,7 @@ class Grasploc:
                 return 1
         else:
             self.pcd = o3d.io.read_triangle_mesh(self.args.input_file).sample_points_poisson_disk(number_of_points=200000).voxel_down_sample(voxel_size=self.args.pcd_sample_voxel_size)
+        self.crop_factor = 1.0
         if not self.args.no_crop:
             # bbx = o3d.geometry.AxisAlignedBoundingBox(
             #     min_bound=np.array([self.args.crop_x_min, self.args.crop_y_min, self.args.crop_z_min]),
@@ -65,7 +66,9 @@ class Grasploc:
             z_extent = self.args.crop_z_max- self.args.crop_z_min
             extent = np.array([x_extent, y_extent, z_extent])
             bbx = o3d.geometry.OrientedBoundingBox(center=trans, R=rot, extent=extent)
+            original_points = len(self.pcd.points)
             self.pcd = self.pcd.crop(bbx)
+            self.crop_factor = len(self.pcd.points) / original_points
         if len(self.pcd.points) == 0:
             print('mesh has no point samples in cropped area, quit')
             return 1
@@ -91,6 +94,7 @@ class Grasploc:
         # for pt, nm in zip(self.pcd.points[::dr], self.pcd.normals[::dr]):
         print('num of samples:', len(self.downpcd.points))
         min_num_points_in_grasp = (fd*fl + fl*ft + fd*ft) / self.args.pcd_sample_voxel_size**2 * self.args.min_num_points_between_proportion
+        min_num_points_in_grasp *= self.crop_factor / 2
         while len(self.grasp_points) <= 10:
             for i, (pt, nm) in enumerate(zip(self.downpcd.points, self.downpcd.normals)):
                 print(i, '/', len(self.downpcd.points))

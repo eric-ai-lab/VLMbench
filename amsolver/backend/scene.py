@@ -77,7 +77,7 @@ class Scene(object):
 
         self._robot_shapes = self._robot.arm.get_objects_in_tree(
             object_type=ObjectType.SHAPE)
-
+        self.gripper_step = 0.5
     def load(self, task: Task, ttms_folder = None) -> None:
         """Loads the task and positions at the centre of the workspace.
 
@@ -407,7 +407,7 @@ class Scene(object):
                         gripper.release()
                     done = False
                     while not done:
-                        done = gripper.actuate(point.gripper_control[1], 0.04)
+                        done = gripper.actuate(point.gripper_control[1], self.gripper_step)
                         self._pyrep.step()
                         self._active_task.step()
                         if self._obs_config.record_gripper_closing:

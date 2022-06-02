@@ -13,23 +13,6 @@ from amsolver.backend.utils import get_relative_position_xy, get_sorted_grasp_po
 from vlm.tasks.stack_cubes import StackCubes
 from pyrep.const import ObjectType, PrimitiveShape
 
-# object_dict = {
-#             "star":{
-#                 "path":"star/star_normal/star_normal.ttm"
-#             },
-#             "moon":{
-#                 "path":"moon/moon_normal/moon_normal.ttm"
-#             },
-#             "triangular":{
-#                 "path":"triangular/triangular_normal/triangular_normal.ttm"
-#             },
-#             "cylinder":{
-#                 "path":"cylinder/cylinder_normal/cylinder_normal.ttm"
-#             },
-#             "cube":{
-#                 "path":"cube/cube_basic/cube_basic.ttm"
-#             }
-#         }
 relative_pos_list = list(itertools.product(["left", "right", "front", "rear"], repeat=2))
 class StackCubesRelative(StackCubes):
 

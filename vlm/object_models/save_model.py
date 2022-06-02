@@ -49,7 +49,7 @@ class Model_Modifer(object):
             part.compute_mass_and_inertia(1000)
             part.set_renderable(False)
             part.set_respondable(True)
-            part.set_dynamic(True)
+            # part.set_dynamic(True)
             part.set_collidable(True)
             if m["graspable"]:
                 WriteCustomDataBlock(part.get_handle(),"graspable","True")
@@ -201,10 +201,10 @@ if __name__=="__main__":
         "parts":[
             {
                 "orginal_name":"door_frame",
-                "name": "door1_frame",
+                "name": "door1_base",
                 "graspable": False,
                 "property":{
-                    "shape": "The frame of door",
+                    "shape": "base of door",
                     "color": None,
                     "size": None,
                     "relative_pos": None
@@ -215,7 +215,7 @@ if __name__=="__main__":
                 "name": "door1_main",
                 "graspable": False,
                 "property":{
-                    "shape": "The door",
+                    "shape": "door",
                     "color": None,
                     "size": None,
                     "relative_pos": None
@@ -226,7 +226,7 @@ if __name__=="__main__":
                 "name": "door1_handle",
                 "graspable": False,
                 "property":{
-                    "shape": "The handle of door",
+                    "shape": "handle of door",
                     "color": None,
                     "size": None,
                     "relative_pos": None
@@ -247,10 +247,10 @@ if __name__=="__main__":
         "parts":[
             {
                 "orginal_name":"door2_left_base",
-                "name": "door2_frame",
+                "name": "door2_base",
                 "graspable": False,
                 "property":{
-                    "shape": "The frame of door",
+                    "shape": "base of door",
                     "color": None,
                     "size": None,
                     "relative_pos": None
@@ -261,7 +261,7 @@ if __name__=="__main__":
                 "name": "door2_main",
                 "graspable": False,
                 "property":{
-                    "shape": "The door",
+                    "shape": "door",
                     "color": None,
                     "size": None,
                     "relative_pos": None
@@ -272,7 +272,7 @@ if __name__=="__main__":
                 "name": "door2_handle",
                 "graspable": False,
                 "property":{
-                    "shape": "The handle of door",
+                    "shape": "handle of door",
                     "color": None,
                     "size": None,
                     "relative_pos": None
@@ -574,6 +574,120 @@ if __name__=="__main__":
             }
         ]
     }
-    modifer.import_model(letters_config)
-    # modifer.extra_from_ttm(pencile1_config,"./vlm/object_models/pencil/pencil1_original.ttm")
+    model_config_fridge = {
+        "class": "fridge",
+        "name": "fridge1",
+        "articulated": True,
+        "constraints": {
+            "top_joint":[0, 1],
+            "bottom_joint":[0, 2]
+        },
+        "highest_part":0,
+        "manipulated_part":[1],
+        "parts":[
+            {
+                "orginal_name":"fridge_base",
+                "name": "fridge1_base",
+                "graspable": False,
+                "property":{
+                    "shape": "base of fridge",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            },
+            {
+                "orginal_name":"door_top",
+                "name": "fridge1_top_door",
+                "graspable": False,
+                "property":{
+                    "shape": "top door of fridge",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            },
+            {
+                "orginal_name":"door_bottom",
+                "name": "fridge1_bottom_door",
+                "graspable": False,
+                "property":{
+                    "shape": "bottom door of fridge",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            }
+        ]
+    }
+    model_config_micro = {
+        "class": "microwave",
+        "name": "microwave1",
+        "articulated": True,
+        "constraints": {
+            "microwave_door_joint":[0, 1]
+        },
+        "highest_part":0,
+        "manipulated_part":[1],
+        "parts":[
+            {
+                "orginal_name":"microwave_frame_resp",
+                "name": "microwave1_base",
+                "graspable": False,
+                "property":{
+                    "shape": "base of microwave",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            },
+            {
+                "orginal_name":"microwave_door_resp",
+                "name": "microwave1_door",
+                "graspable": False,
+                "property":{
+                    "shape": "door of microwave",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            }
+        ]
+    }
+    model_config_grill = {
+        "class": "grill",
+        "name": "grill1",
+        "articulated": True,
+        "constraints": {
+            "bottom_joint":[0, 1]
+        },
+        "highest_part":0,
+        "manipulated_part":[1],
+        "parts":[
+            {
+                "orginal_name":"grill",
+                "name": "grill1_base",
+                "graspable": False,
+                "property":{
+                    "shape": "base of grill",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            },
+            {
+                "orginal_name":"lid",
+                "name": "grill1_lid",
+                "graspable": False,
+                "property":{
+                    "shape": "lid of grill",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            }
+        ]
+    }
+    # modifer.import_model(letters_config)
+    modifer.extra_from_ttm(model_config_door1,"./vlm/object_models/door/door1_original.ttm")
     modifer.pr.shutdown()

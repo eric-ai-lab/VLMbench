@@ -21,6 +21,7 @@ from amsolver.backend.spawn_boundary import BoundingBox, SpawnBoundary
 from amsolver.backend.task import Task
 from amsolver.backend.utils import WriteCustomDataBlock, execute_grasp, execute_path, get_relative_position_xy, get_sorted_grasp_pose, test_reachability
 
+gripper_step = 0.5
 def fast_path_test(point, robot):
     final_config = point._path_points[-len(robot.arm.joints):]
     robot.arm.set_joint_positions(final_config, True)
@@ -202,13 +203,14 @@ class T0_ObtainControl(object):
         find_path = False
         if self.try_times == -1:
             self.try_times = len(sorted_grasp_pose)
+        grasp_index_step = len(sorted_grasp_pose)//self.try_times // 2
         while trial < self.try_times and grasp_pose_idx < len(sorted_grasp_pose):
             # print('trial:', trial, 'grasp idx:', grasp_pose_idx)
             success = False
             grasp_pose = sorted_grasp_pose[grasp_pose_idx]
             pre_grasp_pose = deepcopy(grasp_pose)
             pre_grasp_pose[:3, 3] -= pre_grasp_pose[:3, 2] * self.pregrasp_dist
-            grasp_pose_idx += 1
+            grasp_pose_idx += grasp_index_step
             if pre_grasp_pose[2, 3] - self.table_height < self.table_offset_dist:
                 # print('pre-grasp pose too near to table, ignore')
                 continue
@@ -217,7 +219,7 @@ class T0_ObtainControl(object):
             post_grasp_pose[2, 3] += self.postgrasp_height
             # grasp_pose[:3, 3] += grasp_pose[:3, 2] * 0.01
             waypoint_dumpy.set_matrix(grasp_pose)
-            success, path0 = self.test_reachability(arm, pre_grasp_pose, try_ik_sampling=try_ik_sampling, linear = linear, ignore_collisions=ignore_collisions)
+            success, path0 = test_reachability(arm, pre_grasp_pose, try_ik_sampling=try_ik_sampling, linear = linear, ignore_collisions=ignore_collisions)
             moved = False
             if success:
                 # move arm to pregrasp pose, then test grasp, this time only check cartesian move (linear path)
@@ -226,7 +228,7 @@ class T0_ObtainControl(object):
                 # path0.set_to_end()
                 moved = True
                 # print('pregrasp path:', success)
-                success, path1 = self.test_reachability(arm, grasp_pose, False, linear=True,  ignore_collisions=ignore_collisions)
+                success, path1 = test_reachability(arm, grasp_pose, False, linear=True,  ignore_collisions=ignore_collisions)
                 if success:
                     # test grasp here
                     # execute_path(path1, self.pyrep)
@@ -391,7 +393,7 @@ class T1_MoveObjectGoal(object):
                     self.robot.gripper.release()
                     done = False
                     while not done:
-                        done = self.robot.gripper.actuate(1,0.04)
+                        done = self.robot.gripper.actuate(1,gripper_step)
                         self.pyrep.step()
                     for _ in range(10):
                         self.pyrep.step()
@@ -453,7 +455,7 @@ class T1_MoveObjectGoal(object):
                 self.robot.gripper.release()
                 done = False
                 while not done:
-                    done = self.robot.gripper.actuate(1,0.04)
+                    done = self.robot.gripper.actuate(1,gripper_step)
                     self.pyrep.step()
                 for _ in range(10):
                     self.pyrep.step()
@@ -511,7 +513,7 @@ class T1_MoveObjectGoal(object):
                     self.robot.gripper.release()
                     done = False
                     while not done:
-                        done = self.robot.gripper.actuate(1,0.04)
+                        done = self.robot.gripper.actuate(1,gripper_step)
                         self.pyrep.step()
                     for _ in range(10):
                         self.pyrep.step()

@@ -19,10 +19,10 @@
  "parts": [
   {
    "orginal_name": "door_frame",
-   "name": "door1_frame",
+   "name": "door1_base",
    "graspable": false,
    "property": {
-    "shape": "The frame of door",
+    "shape": "base of door",
     "color": null,
     "size": null,
     "relative_pos": null
@@ -33,7 +33,7 @@
    "name": "door1_main",
    "graspable": false,
    "property": {
-    "shape": "The door",
+    "shape": "door",
     "color": null,
     "size": null,
     "relative_pos": null
@@ -44,7 +44,7 @@
    "name": "door1_handle",
    "graspable": false,
    "property": {
-    "shape": "The handle of door",
+    "shape": "handle of door",
     "color": null,
     "size": null,
     "relative_pos": null

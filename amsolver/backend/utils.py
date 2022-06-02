@@ -354,7 +354,7 @@ def execute_path(path, pyrep):
 def execute_grasp(gripper: Gripper, obj: Object, pyrep: PyRep, release=False):
   # print('executing grasp')
   done = False
-  step = 0.04
+  step = 0.2
   success_grasp_distance = 0.015
   action = 1 if release else 0
   while not done:
@@ -415,7 +415,7 @@ def get_sorted_grasp_pose(obj_pose, local_grasp_pose, sort_key="vertical"):
   if sort_key=="vertical":
     axis_angle = grasp_pose[:,2, 2]
   elif sort_key=="horizontal":
-    axis_angle = abs(grasp_pose[:,2, 2])
+    axis_angle = abs(grasp_pose[:,2, 2])-grasp_pose[:,0, 2]**2
     # sort_select = np.argsort(np.abs(angle_z_z_axis))
   elif type(sort_key)==list:
     # New axis(sort_key[0]) in the world axis(sort_key[1])
