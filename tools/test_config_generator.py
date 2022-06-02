@@ -27,20 +27,20 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '../vlmbench/test',
+                    '/data1/zhengkz/rlbench_new/test/seen',
                     'Where to save the demos.')
-flags.DEFINE_list('tasks', ["pick_cube_size"],
+flags.DEFINE_list('tasks', ['pick_cube_color', 'pick_cube_relative', 'pick_cube_shape', 'pick_cube_size'],
                   'The tasks to collect. If empty, all tasks are collected.')
 flags.DEFINE_list('image_size', [224, 224],
                   'The size of the images tp save.')
 flags.DEFINE_enum('renderer',  'opengl', ['opengl', 'opengl3'],
                   'The renderer to use. opengl does not include shadows, '
                   'but is faster.')
-flags.DEFINE_integer('processes', 8,
+flags.DEFINE_integer('processes', 32,
                      'The number of parallel processes during collection.')
-flags.DEFINE_integer('episodes_per_task', 1,
+flags.DEFINE_integer('episodes_per_task', 5,
                      'The number of episodes to collect per task.')
-flags.DEFINE_integer('variations', 1,
+flags.DEFINE_integer('variations', -1,
                      'Number of variations to collect per task. -1 for all.')
 
 class Recorder(object):
@@ -104,7 +104,8 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
         obs_config=obs_config,
         headless=False)
     amsolver_env.launch()
-    recorder = Recorder()
+    # recorder = Recorder()
+    recorder = None
     task_env = None
 
     tasks_with_problems = results[i] = ''
@@ -158,7 +159,8 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
             while attempts > 0:
                 try:
                     task_base, waypoint_sets, config = task_env.save_config()
-                    recorder.take_snap()
+                    if recorder is not None:
+                        recorder.take_snap()
                 except Exception as e:
                     print(e)
                     attempts -= 1
@@ -177,7 +179,8 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
                 episode_path = os.path.join(episodes_path, EPISODE_FOLDER % (ex_idx))
                 with file_lock:
                     save_demo(task_base, waypoint_sets, config, episode_path)
-                    recorder.save_image(os.path.join(episode_path, "image.png"))
+                    if recorder is not None:
+                        recorder.save_image(os.path.join(episode_path, "image.png"))
                 ex_idx += 1
                 break
             if abort_variation:

@@ -5,7 +5,7 @@ import cliport.utils as utils
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from language_tasks.baseline_models import mlp
+from cliport.utils import mlp
 
 class Transport(nn.Module):
 

@@ -19,7 +19,6 @@ from os.path import join, dirname, abspath, isfile
 CURRENT_DIR = dirname(abspath(__file__))
 sys.path.insert(0, join(CURRENT_DIR, '..'))  # Use local amsolver rather than installed
 
-from language_tasks.languagepolicy.loss import calculateLoss
 from cliport.agent import BlindLangAgent_6Dof, DepthLangAgent_6Dof, TransporterLangAgent, \
         TwoStreamClipLingUNetLatTransporterAgent, ImgLangAgent_6Dof, TwoStreamClipLingUNetLatTransporterJointAgent, TwoStreamClipLingUNetLatTransporterAgent_IGNORE
 warnings.filterwarnings('ignore')
@@ -215,8 +214,9 @@ def main_worker(gpu, ngpus_per_node, args):
     cudnn.benchmark = True
     train_dataset = VLM_dataset(args.data_dir, 'train', img_size=args.img_size, unused_camera_list = args.unused_camera_list, preprocess = args.preprocess, 
                     use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks)
-    val_dataset = VLM_dataset(args.data_dir, 'val', img_size=args.img_size, unused_camera_list = args.unused_camera_list, preprocess = args.preprocess, 
+    val_dataset = VLM_dataset(args.data_dir, 'valid', img_size=args.img_size, unused_camera_list = args.unused_camera_list, preprocess = args.preprocess, 
                     use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks)
+    dist.barrier()
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
         val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset)
@@ -414,7 +414,10 @@ def val(data_loader, model, args, epoch):
             losses[loss_term].update(loss_dict[loss_term].item(), args.batch_size)
         loss = sum(l.item() for l in loss_dict.values())
         total_loss.append(loss)
-    avg_loss = np.mean(np.array(total_loss))
+    total_loss = torch.tensor(total_loss).cuda(args.gpu)
+    dist.barrier()
+    dist.all_reduce(total_loss)
+    avg_loss = total_loss.mean().item()
     if args.rank==0:
         tmp_str = 'Epoch [{}/{}] Val_loss: {:.4f} '.format(epoch + 1, args.epochs, avg_loss)
         for loss_term in losses:
@@ -480,3 +483,30 @@ if __name__=="__main__":
     if not args.preprocess:
         print('Not useing preprocess data.')
     main(args)
+
+"""
+import cv2
+i = 1
+img_v = np.uint8(img[i, ..., :3])
+center_coordinates = (p0[i,1], p0[i,0])
+# Radius of circle
+radius = 10
+
+# Blue color in BGR
+color = (0, 255, 255)
+
+# Line thickness of 2 px
+thickness = 2
+
+# Using cv2.circle() method
+# Draw a circle with blue line borders of thickness of 2 px
+img_v = cv2.circle(img_v, center_coordinates, radius, color, thickness)
+center_coordinates = (p1[i,1], p1[i,0])
+color = (255, 255, 0)
+thickness = 3
+img_v = cv2.circle(img_v, center_coordinates, radius, color, thickness)
+
+# Using cv2.imshow() method 
+# Displaying the image 
+cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/input_img.png', cv2.cvtColor(np.uint8(img_v),cv2.COLOR_RGB2BGR))
+"""

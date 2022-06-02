@@ -188,7 +188,7 @@ if __name__=="__main__":
     obs_config.front_camera.render_mode = RenderMode.OPENGL
 
     action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK)
-    env = Environment(action_mode, obs_config=obs_config, headless=False)
+    env = Environment(action_mode, obs_config=obs_config, headless=True)
     env.launch()
 
     # recorder = Recorder()
@@ -199,17 +199,17 @@ if __name__=="__main__":
     need_post_grap = True
     need_pre_move = False
     # task_files = ['drop_pen_color', 'drop_pen_relative', 'drop_pen_size']
-    # task_files = ['pick_cube_shape', 'pick_cube_relative', 'pick_cube_color', 'pick_cube_size']
+    task_files = ['pick_cube_shape', 'pick_cube_relative', 'pick_cube_color', 'pick_cube_size']
     # task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
     # task_files = ['place_into_shape_sorter_color', 'place_into_shape_sorter_relative', 'place_into_shape_sorter_shape']
     # task_files = ['wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
     # task_files = ['pour_demo_color', 'pour_demo_relative', 'pour_demo_size']
-    task_files = ['drop_pen_color']
+    # task_files = ['drop_pen_color']
     # task_files = ['open_drawer']
     # task_files = ['open_door']
     train_tasks = [task_file_to_task_class(t, parent_folder = 'vlm') for t in task_files]
-    data_folder = Path("../vlmbench/test")
-    checkpoint = "../weights/conv_checkpoint_cliport_6dof_drop_best.pth"
+    data_folder = Path("/data1/zhengkz/rlbench_new/test/seen")
+    checkpoint = "/data1/zhengkz/new_weights/conv_checkpoint_cliport_6dof_pick_best.pth"
     model_name = "cliport_6dof"
     agent = CliportAgent(model_name, device_id=7,z_roll_pitch=True, checkpoint=checkpoint)
     for i, task_to_train in enumerate(train_tasks):

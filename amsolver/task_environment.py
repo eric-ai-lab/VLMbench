@@ -158,7 +158,7 @@ class TaskEnvironment(object):
         except IKError as e:
             raise InvalidActionError('Could not find a path.') from e
 
-    def _path_action(self, action, collision_checking=False, relative_to=None):
+    def _path_action(self, action, collision_checking=False, relative_to=None, recorder=None):
         self._assert_unit_quaternion(action[3:])
         # Check if the target is in the workspace; if not, then quick reject
         # Only checks position, not rotation
@@ -195,6 +195,8 @@ class TaskEnvironment(object):
                     self._scene.step()
                     if self._enable_path_observations:
                         observations.append(self._scene.get_observation())
+                    if recorder is not None:
+                        recorder.take_snap()
                     colliding = self._robot.arm.check_arm_collision()
                     if not colliding:
                         break
@@ -211,6 +213,8 @@ class TaskEnvironment(object):
                 self._scene.step()
                 if self._enable_path_observations:
                     observations.append(self._scene.get_observation())
+                if recorder is not None:
+                    recorder.take_snap()
                 success, terminate = self._task.success()
                 # If the task succeeds while traversing path, then break early
                 if success:
@@ -218,7 +222,7 @@ class TaskEnvironment(object):
 
         return observations
 
-    def step(self, action, collision_checking=None, use_auto_move=True) -> (Observation, int, bool):
+    def step(self, action, collision_checking=None, use_auto_move=True, recorder = None) -> (Observation, int, bool):
         # returns observation, reward, done, info
         if not self._reset_called:
             raise RuntimeError(
@@ -310,13 +314,15 @@ class TaskEnvironment(object):
             # if current_ee == 1.0 and ee_action == 0.0:
             if current_ee != ee_action and use_auto_move:
                 obs = self._scene.get_observation()
-                pass_this_step = self.auto_grasp(obs, arm_action, ee_action)
+                _, new_arm_action = self.auto_grasp(obs, arm_action, ee_action)
+                if new_arm_action is not None:
+                    arm_action = new_arm_action
             if collision_checking is None:
                 collision_checking = False
             if not pass_this_step:
                 self._path_observations = []
                 self._path_observations = self._path_action(
-                    list(arm_action), collision_checking=collision_checking)
+                    list(arm_action), collision_checking=collision_checking, recorder=recorder)
 
         elif self._action_mode.arm == ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK:
 
@@ -325,13 +331,15 @@ class TaskEnvironment(object):
             # if current_ee == 1.0 and ee_action == 0.0:
             if current_ee != ee_action and use_auto_move:
                 obs = self._scene.get_observation()
-                pass_this_step = self.auto_grasp(obs, arm_action, ee_action)
+                _, new_arm_action = self.auto_grasp(obs, arm_action, ee_action)
+                if new_arm_action is not None:
+                    arm_action = new_arm_action
             if collision_checking is None:
                 collision_checking = True
             if not pass_this_step:
                 self._path_observations = []
                 self._path_observations = self._path_action(
-                    list(arm_action), collision_checking=collision_checking)
+                    list(arm_action), collision_checking=collision_checking, recorder = recorder)
 
         elif self._action_mode.arm == ArmActionMode.DELTA_EE_POSE_PLAN_WORLD_FRAME:
 
@@ -437,6 +445,7 @@ class TaskEnvironment(object):
         info = obs.object_informations
         waypoints = self._task.get_waypoints()
         success = False
+        new_action = None
         for w in waypoints:
             name = w.name
             gripper_control = w.gripper_control
@@ -446,11 +455,14 @@ class TaskEnvironment(object):
                 target_pose = info[name]['pose'][0]
                 t_error, r_error = get_errors(target_pose, goal_tip_pose)
                 if t_error<0.05 and r_error>0.9:
-                        print("Using automatic grasp")
-                        execute_waypoint(w)
-                        success = True
-                        break
-        return success
+                    print("Using automatic grasp")
+                    # execute_waypoint(w)
+                    new_action = goal_tip_pose.copy()
+                    wpoint_pose = w.pose if hasattr(w, "pose") else w.end_pose
+                    new_action[:3] = wpoint_pose[:3]
+                    success = True
+                    break
+        return success, new_action
             
     def enable_path_observations(self, value: bool) -> None:
         if (self._action_mode.arm != ArmActionMode.DELTA_EE_POSE_PLAN_WORLD_FRAME and
