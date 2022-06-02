@@ -99,19 +99,13 @@ class VLM_dataset(Dataset):
     def __getitem__(self, index):
         episode = self.episode_list[index]
         variation_path = episode.parents[1]
-        task_name = episode.parents[2].name
+        task_name = episode.parents[2]
         fail_cases = 'fail_cases' in str(episode)
-        preprocess_data_folder = self.dataset_path/episode/'preprocess_data'
-
-        need_rebuild = False
-        if not preprocess_data_folder.is_dir():
-            preprocess_data_folder.mkdir()
-            need_rebuild = True
 
         low_dim_obs = self.dataset_path/episode/"low_dim_obs.pkl"
         with open(low_dim_obs, 'rb') as f:
             demo_temple = pickle.load(f)
-        obs_list = os.listdir(preprocess_data_folder)
+        
         sequence_length = len(demo_temple._observations)
         obs_select_inds = np.arange(sequence_length)
         if self.sample_numbers:
@@ -131,13 +125,20 @@ class VLM_dataset(Dataset):
                     previous_waypoint = obs.current_waypoint_name
                     self.all_waypoints.append(previous_waypoint)
                     obs_select_inds.append(i)
-            # for i in range(len(obs_select_inds)):
-            #     if i+1<len(obs_select_inds):
-            #         random_i = np.random.randint(obs_select_inds[i], obs_select_inds[i+1])
-            #     else:
-            #         random_i = np.random.randint(obs_select_inds[i], sequence_length)
-            #     obs_select_inds[i] = random_i
+            for i in range(len(obs_select_inds)):
+                if i+1<len(obs_select_inds):
+                    random_i = np.random.randint(obs_select_inds[i], obs_select_inds[i+1])
+                else:
+                    random_i = np.random.randint(obs_select_inds[i], sequence_length)
+                obs_select_inds[i] = random_i
         if self.preprocess:
+            preprocess_data_folder = self.dataset_path/episode/'preprocess_data'
+
+            need_rebuild = False
+            if not preprocess_data_folder.is_dir():
+                preprocess_data_folder.mkdir()
+                need_rebuild = True
+            obs_list = os.listdir(preprocess_data_folder)
             if len(obs_list)<len(obs_select_inds):
                 need_rebuild=True
             elif len(obs_list)>0:
@@ -217,7 +218,7 @@ class VLM_dataset(Dataset):
                 else:
                     related_rotation = False
                 point_list.append(focus_wp)
-                step_list.append([focus_wp, i, attention_id, related_rotation])
+                step_list.append([focus_wp, step_img_id, attention_id, related_rotation])
         
         for i, step in enumerate(step_list):
             current_waypoint, index, attention_id, related_rotation = step

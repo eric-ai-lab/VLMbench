@@ -728,7 +728,7 @@ class TwoStreamClipLingUNetLatTransporterAgent_IGNORE(TwoStreamClipLingUNetTrans
         colors = [front_rgb, wrist_rgb, left_rgb, right_rgb, overhead_rgb]
         pcds = [front_point_cloud, wrist_point_cloud, left_point_cloud, right_point_cloud, overhead_point_cloud]
         cmap, hmap = utils.get_fused_heightmap(colors, pcds, bounds, pixel_size)
-        # cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/cmap.png', cv2.cvtColor(cmap,cv2.COLOR_RGB2BGR))
+        # cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/cmap.png', cv2.cvtColor(cmap,cv2.COLOR_RGB2BGR))
         # img = self.test_ds.get_image(obs)
         hmap = np.tile(hmap[..., None], (1,1,3))
         img = np.concatenate([cmap, hmap], axis=-1)
@@ -797,7 +797,7 @@ class TwoStreamClipLingUNetLatTransporterAgent_IGNORE(TwoStreamClipLingUNetTrans
         if draw_result:
             import cv2
             attn_conf = (attn_conf-attn_conf.min())/(attn_conf.max()-attn_conf.min())
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/atten_map_predict.png', np.uint8(attn_conf*255))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/atten_map_predict.png', np.uint8(attn_conf*255))
             center_coordinates = (argmax[1], argmax[0])
             # print("predict:{}".format(center_coordinates))
             # Radius of circle
@@ -822,15 +822,15 @@ class TwoStreamClipLingUNetLatTransporterAgent_IGNORE(TwoStreamClipLingUNetTrans
             # color = (255, 255, 0)
             # radius = 3
             # image = cv2.circle(image, center_coordinates, radius, color, thickness)
-            # cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/cmap.png', cv2.cvtColor(image,cv2.COLOR_RGB2BGR))
+            # cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/cmap.png', cv2.cvtColor(image,cv2.COLOR_RGB2BGR))
             predict_img = (predict_xy-predict_xy.min())/(predict_xy.max()-predict_xy.min())
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/place_map_predict.png', np.uint8(predict_img*255))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map_predict.png', np.uint8(predict_img*255))
 
             center_coordinates = (place_argmax[1],place_argmax[0])
             color = (140,140,255)
             radius=2
             image_place = cv2.circle(image, center_coordinates, radius, color, thickness)
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
         return img, [lang_goal[0]], None, output_dict
 
 class TransporterAgent_6Dof(TransporterAgent):
@@ -1071,7 +1071,7 @@ class TransporterAgent_6Dof(TransporterAgent):
         colors = [front_rgb, wrist_rgb, left_rgb, right_rgb, overhead_rgb]
         pcds = [front_point_cloud, wrist_point_cloud, left_point_cloud, right_point_cloud, overhead_point_cloud]
         cmap, hmap = utils.get_fused_heightmap(colors, pcds, bounds, pixel_size)
-        # cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/cmap.png', cv2.cvtColor(cmap,cv2.COLOR_RGB2BGR))
+        # cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/cmap.png', cv2.cvtColor(cmap,cv2.COLOR_RGB2BGR))
         # img = self.test_ds.get_image(obs)
         hmap = np.tile(hmap[..., None], (1,1,3))
         img = np.concatenate([cmap, hmap], axis=-1)
@@ -1145,7 +1145,7 @@ class TransporterAgent_6Dof(TransporterAgent):
         if draw_result:
             import cv2
             attn_conf = (attn_conf-attn_conf.min())/(attn_conf.max()-attn_conf.min())
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/atten_map_predict.png', np.uint8(attn_conf*255))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/atten_map_predict.png', np.uint8(attn_conf*255))
             center_coordinates = (argmax[1], argmax[0])
             # print("predict:{}".format(center_coordinates))
             # Radius of circle
@@ -1160,13 +1160,13 @@ class TransporterAgent_6Dof(TransporterAgent):
             image = cv2.circle(image, center_coordinates, radius, color, thickness)
             predict_xy = xy_theta_tensors.mean(-1)
             predict_img = (predict_xy-predict_xy.min())/(predict_xy.max()-predict_xy.min())
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/place_map_predict.png', np.uint8(predict_img*255))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map_predict.png', np.uint8(predict_img*255))
 
             center_coordinates = (place_argmax[1],place_argmax[0])
             color = (140,140,255)
             radius=2
             image_place = cv2.circle(image, center_coordinates, radius, color, thickness)
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
         return img, [lang_goal[0]], None, output_dict
 # class LanguageAgent_6Dof(TransporterAgent_6Dof):
 class TwoStreamClipLingUNetLatTransporterAgent(TransporterAgent_6Dof):
@@ -1429,7 +1429,7 @@ class TwoStreamClipLingUNetLatTransporterJointAgent(TransporterAgent_6Dof):
         if draw_result:
             import cv2
             attn_conf = (attn_conf-attn_conf.min())/(attn_conf.max()-attn_conf.min())
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/atten_map_predict.png', np.uint8(attn_conf*255))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/atten_map_predict.png', np.uint8(attn_conf*255))
             center_coordinates = (argmax[1], argmax[0])
             # print("predict:{}".format(center_coordinates))
             # Radius of circle
@@ -1444,13 +1444,13 @@ class TwoStreamClipLingUNetLatTransporterJointAgent(TransporterAgent_6Dof):
             image = cv2.circle(image, center_coordinates, radius, color, thickness)
             predict_xy = xy_theta_tensors.mean(-1)
             predict_img = (predict_xy-predict_xy.min())/(predict_xy.max()-predict_xy.min())
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/place_map_predict.png', np.uint8(predict_img*255))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map_predict.png', np.uint8(predict_img*255))
 
             center_coordinates = (place_argmax[1],place_argmax[0])
             color = (140,140,255)
             radius=2
             image_place = cv2.circle(image, center_coordinates, radius, color, thickness)
-            cv2.imwrite('/home/kaizhi/Documents/RLbench_language_benchmark/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
+            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
         return img, [lang_goal[0]], None, output_dict
 
 class TransporterLangAgent(TransporterAgent_6Dof):
