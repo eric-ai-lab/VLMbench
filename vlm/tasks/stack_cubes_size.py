@@ -20,10 +20,9 @@ class StackCubesSize(StackCubes):
         self.model_num = 3
         super().init_task()
 
-    def init_episode(self, index: int) -> List[str]:
-        index = 4
-        assert self.cube_num == 3
-        for i in range(self.cube_num):
+    def modified_init_episode(self, index: int) -> List[str]:
+        assert self.model_num == 3
+        for i in range(self.model_num):
             cube = self.cube_list[i]
             if i==0:
                 cube.manipulated_part.descriptions = "the large {}".format(cube.manipulated_part.property["shape"])
@@ -41,11 +40,11 @@ class StackCubesSize(StackCubes):
                 local_grasp_pose[:, :3, 3] *= relative_factor
                 cube.manipulated_part.local_grasp = local_grasp_pose
 
-        color_index = np.random.choice(len(colors), self.cube_num, replace=True)
+        color_index = np.random.choice(len(colors), self.model_num, replace=True)
         for cube, i in zip(self.cube_list, color_index):
             Shape(cube.manipulated_part.visual).set_color(colors[i][1])
         self.cube_list = [self.cube_list[i] for i in sequence[index]]
-        return super().init_episode(index)
+        return None
 
     def variation_count(self) -> int:
         # TODO: The number of variations for this task.

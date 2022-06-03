@@ -23,14 +23,15 @@ class PickCube(Task):
         self.target_spaces = [self.target_space0, self.target_space1]
         self.model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
         self.temporary_waypoints = []
-        self.object_list = []
         self.taks_base = self.get_base()
         if not hasattr(self, "model_num"):
             self.model_num = 2
-        self.import_objects(self.model_num)
+        # self.import_objects(self.model_num)
     
     def init_episode(self, index: int) -> List[str]:
+        self.import_objects(self.model_num)
         self.variation_index = index
+        self.modified_init_episode(index)
         # ind = np.random.randint(0, len(self.target_spaces))
         self.target_space = self.target_spaces[0]
         self.manipulated_obj = self.object_list[0].manipulated_part
@@ -74,6 +75,7 @@ class PickCube(Task):
         return self._base_object
     
     def import_objects(self, num=2):
+        self.object_list = []
         if not hasattr(self, "model_path"):
             selected_obj = random.choice(list(object_shapes.keys()))
             model_path = self.model_dir+object_shapes[selected_obj]['path']
@@ -85,6 +87,7 @@ class PickCube(Task):
             cube.set_parent(self.taks_base)
             self.object_list.append(cube)
         self.register_graspable_objects(self.object_list)
+        self._need_remove_objects+=self.object_list
     
     def sample_method(self):
         satisfied = False
@@ -92,28 +95,7 @@ class PickCube(Task):
             self.spawn_space.clear()
             for space in self.target_spaces:
                 self.spawn_space.sample(Shape(space.focus_obj_id), min_distance=0.25)
-            # self.spawn_space.sample(Shape('small_container0'))
-            # self.spawn_space.sample(Shape('small_container1'), min_distance=0.25)
-            if hasattr(self, "get_relative_pos"):
-                comparted_target = self.target_spaces[1]
-                target_relative_pose = get_relative_position_xy(Shape(comparted_target.focus_obj_id), Shape(self.target_space.focus_obj_id), self.robot.arm)
-                if target_relative_pose != self.destination_target_relative:
-                    continue
-                self.target_space.target_space_descriptions = f"the {target_relative_pose} container"
-                # target_space0_pos = get_relative_position_xy(Shape("small_container1"), Shape('small_container0'), self.robot.arm)
-                # target_space1_pos = get_relative_position_xy(Shape("small_container0"), Shape('small_container1'), self.robot.arm)
-                # self.target_space0.target_space_descriptions = f"the {target_space0_pos} container"
-                # self.target_space1.target_space_descriptions = f"the {target_space1_pos} container"
-                # if self.target_space.target_space_descriptions != f"the {self.destination_target_relative} container":
-                #     continue
             for obj in self.object_list:
                 self.spawn_space.sample(obj, min_distance=0.1)
-            if hasattr(self, "get_relative_pos"):
-                comparted_obj = self.object_list[1]
-                object_relative_pose = get_relative_position_xy(comparted_obj.manipulated_part, self.manipulated_obj, self.robot.arm)
-                if object_relative_pose != self.object_target_relative:
-                    continue
-                self.manipulated_obj.property["relative_pos"] = object_relative_pose
-                self.manipulated_obj.descriptions = "the {} {}".format(self.manipulated_obj.property["relative_pos"], self.manipulated_obj.property["shape"])
             satisfied = True
             self.pyrep.step()

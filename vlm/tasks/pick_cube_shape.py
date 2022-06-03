@@ -8,7 +8,7 @@ from vlm.tasks.pick_cube import PickCube
 
 class PickCubeShape(PickCube):
 
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int) -> List[str]:
         self.object_list = [self.shape_lib[index]]
         other_obj_index = list(range(len(self.shape_lib)))
         other_obj_index.remove(index)
@@ -27,7 +27,7 @@ class PickCubeShape(PickCube):
             target_space.target_space_descriptions = "the {} container".format(colors[target_space_colors[i]][0])
             Shape(target_space.focus_obj_id).set_color(colors[target_space_colors[i]][1])
 
-        return super().init_episode(index)
+        return None
     
     def variation_count(self) -> int:
         return len(object_shapes)
@@ -42,4 +42,5 @@ class PickCubeShape(PickCube):
                 model.set_position([0,0,0])
                 self.shape_lib.append(model)
         self.register_graspable_objects(self.shape_lib)
+        self._need_remove_objects+=self.shape_lib
                 

@@ -80,7 +80,7 @@ def check_and_make(dir):
 def save_demo(task_base, waypoint_sets, config, example_path):
     check_and_make(example_path)
     # Save the low-dimension data
-    with open(os.path.join(example_path, LOW_DIM_PICKLE), 'wb') as f:
+    with open(os.path.join(example_path, "configs.pkl"), 'wb') as f:
         pickle.dump(config, f)
     task_base.save_model(os.path.join(example_path, "task_base.ttm"))
     waypoint_sets.save_model(os.path.join(example_path, "waypoint_sets.ttm"))
@@ -102,7 +102,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     amsolver_env = Environment(
         action_mode=ActionMode(),
         obs_config=obs_config,
-        headless=False)
+        headless=True)
     amsolver_env.launch()
     # recorder = Recorder()
     recorder = None

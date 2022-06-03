@@ -15,7 +15,7 @@ from pyrep.const import ObjectType, PrimitiveShape
 
 class StackCubesColor(StackCubes):
 
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int) -> List[str]:
         for obj in self.cube_list:
             scale_factor = np.random.uniform(0.8, 1.2)
             relative_factor = scale_object(obj, scale_factor)
@@ -31,8 +31,8 @@ class StackCubesColor(StackCubes):
         color_names, rgbs = select_color(index, len(self.cube_list)-1, replace=False)
         for i, cube in enumerate(self.cube_list):
             Shape(cube.manipulated_part.visual).set_color(rgbs[i])
-            cube.manipulated_part.descriptions = f"the {color_names[i]} {obj.manipulated_partproperty['shape']}"
-        return super().init_episode(index)
+            cube.manipulated_part.descriptions = f"the {color_names[i]} {obj.manipulated_part.property['shape']}"
+        return None
 
     def variation_count(self) -> int:
         # TODO: The number of variations for this task.

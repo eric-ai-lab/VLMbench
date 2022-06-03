@@ -36,6 +36,9 @@ class InvalidActionError(Exception):
 class TaskEnvironmentError(Exception):
     pass
 
+class TaskConfigs(object):
+    def __init__(self) -> None:
+        pass
 
 class TaskEnvironment(object):
 
@@ -559,6 +562,10 @@ class TaskEnvironment(object):
                 % self._task.get_name()) from e
 
         self._reset_called = True
+        task_base, waypoint_sets, config = self.read_config(desc)
+        return task_base, waypoint_sets, config
+    
+    def read_config(self, desc):
         task_base = self._task.get_base()
         if Dummy.exists("waypoint_sets"):
             waypoint_sets = Dummy("waypoint_sets")
@@ -568,7 +575,11 @@ class TaskEnvironment(object):
             waypoint_sets.set_model(True)
         for waypoint in self._task.temporary_waypoints:
             waypoint.set_parent(waypoint_sets)
-        config = self._scene.get_observation()
+        # config = self._scene.get_observation()
+        # for key, val in config.__dict__.items():
+        #     if "rgb" in key or "depth" in key or "point" in key or "gripper" in key:
+        #         config.__setattr__(key, None)
+        config = TaskConfigs()
         config.high_level_descriptions = desc
         config.success_conditions = self._task._success_conditions
         graspable_objects = []

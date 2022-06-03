@@ -334,6 +334,7 @@ class Scene(object):
         if not self._has_init_episode:
             self.init_episode(self._variation_index,
                               randomly_place=randomly_place)
+        init_states = self._active_task.get_base().get_configuration_tree()
         self._has_init_episode = False
         waypoints = self._active_task.get_waypoints()
         if len(waypoints) == 0:
@@ -439,6 +440,7 @@ class Scene(object):
             #                 self._active_task)
         d = Demo(demo)
         d.high_level_instructions = self.descriptions
+        self._pyrep.set_configuration_tree(init_states)
         return d, success
 
     def get_observation_config(self) -> ObservationConfig:

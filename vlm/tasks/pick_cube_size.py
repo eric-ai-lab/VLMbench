@@ -14,7 +14,7 @@ class PickCubeSize(PickCube):
         # self.model_path = "cube/cube_basic/cube_basic.ttm"
         super().init_task()
 
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int) -> List[str]:
         obj_size, target_size = size_permutations[index]
         # samll_scale_factor = np.random.uniform(0.6, 0.9, 2)
         # large_scale_factor = np.random.uniform(1.1, 1.5, 2)
@@ -24,8 +24,8 @@ class PickCubeSize(PickCube):
         else:
             small_obj = self.object_list[1]
             large_obj = self.object_list[0]
-        small_obj.manipulated_part.descriptions = "the {} {}".format("smaller", small_obj.manipulated_part.property["shape"])
-        large_obj.manipulated_part.descriptions = "the {} {}".format("larger", large_obj.manipulated_part.property["shape"])
+        small_obj.manipulated_part.descriptions = "the {} object".format("smaller")
+        large_obj.manipulated_part.descriptions = "the {} object".format("larger")
         for obj, scale_factor in zip([small_obj, large_obj],[np.random.uniform(0.6, 0.9), np.random.uniform(1.1, 1.4)]):
             relative_factor = scale_object(obj, scale_factor)
             if abs(relative_factor-1)>1e-2:
@@ -52,6 +52,6 @@ class PickCubeSize(PickCube):
         for i, target_space in enumerate(self.target_spaces):
             Shape(target_space.focus_obj_id).set_color(colors[target_space_colors[i]][1])
         self.pyrep.step()
-        return super().init_episode(index)
+        return None
     def variation_count(self) -> int:
         return len(size_permutations)

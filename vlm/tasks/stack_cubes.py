@@ -8,6 +8,7 @@ from pyrep.objects.shape import Shape
 from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.const import ObjectType, PrimitiveShape
 from amsolver.backend.unit_tasks import T0_ObtainControl, T1_MoveObjectGoal, TargetSpace, VLM_Object
+from amsolver.backend.utils import scale_object
 from amsolver.const import colors, object_shapes
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
@@ -20,18 +21,20 @@ class StackCubes(Task):
         self.success_sensor.set_collidable(False)
         self.spawn_space = SpawnBoundary([Shape('workspace')])
         self.model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
-        self.cube_list = []
         self.temporary_waypoints = []
         self.taks_base = self.get_base()
         if not hasattr(self, "model_num"):
             self.model_num = 4
-        self.import_objects(self.model_num)
-        self.init_pose = []
-        for cube in self.cube_list:
-            self.init_pose.append(cube.get_pose())
+        if not hasattr(self, "class_num"):
+            self.class_num = 1
 
     def init_episode(self, index: int) -> List[str]:
         self.variation_index = index
+        self.import_objects()
+        self.init_pose = []
+        for cube in self.cube_list:
+            self.init_pose.append(cube.get_pose())
+        self.modified_init_episode(index)
         try_times = 200
         # pick_cube_number = np.random.randint(1,self.cube_num)
         pick_cube_number = 1
@@ -80,23 +83,35 @@ class StackCubes(Task):
         descriptions += " in sequence."
         return [descriptions]
 
-    def import_objects(self, number=4):
-        selected_obj = random.choice(list(object_shapes.keys()))
-        model_path = self.model_dir+object_shapes[selected_obj]['path']
-        self.cube_num = number
-        for i in range(self.cube_num):
-            cube = VLM_Object(self.pyrep, model_path, i)
-            # cube.set_model(False)
-            cube.set_parent(self.taks_base)
-            cube_bbox = cube.get_bounding_box()
-            x, y = cube_bbox[1]-cube_bbox[0]+0.02,  cube_bbox[3]-cube_bbox[2]+0.02
-            cube_target = Shape.create(PrimitiveShape.CUBOID, [x,y,0.02], respondable=False, static=True, renderable=False)
-            # cube_target.set_parent(self.taks_base)
-            cube_target._is_plane = True
-            cube_target.set_transparency(0)
-            cube.target = cube_target
-            self.cube_list.append(cube)
+    def import_objects(self):
+        self.cube_list = []
+        self.shape_lib = {}
+        selected_objs = random.sample(list(object_shapes.keys()), self.class_num)
+        for selected_obj in selected_objs:
+            model_path = self.model_dir+object_shapes[selected_obj]['path']
+            self.shape_lib[selected_obj] = []
+            for i in range(self.model_num):
+                cube = VLM_Object(self.pyrep, model_path, i)
+                scale_factor = np.random.uniform(1.0, 1.25)
+                relative_factor = scale_object(cube, scale_factor)
+                if abs(relative_factor-1)>1e-2:
+                    local_grasp_pose = cube.manipulated_part.local_grasp
+                    local_grasp_pose[:, :3, 3] *= relative_factor
+                    cube.manipulated_part.local_grasp = local_grasp_pose
+                # cube.set_model(False)
+                cube.set_parent(self.taks_base)
+                cube_bbox = cube.get_bounding_box()
+                x, y = cube_bbox[1]-cube_bbox[0]+0.02,  cube_bbox[3]-cube_bbox[2]+0.02
+                cube_target = Shape.create(PrimitiveShape.CUBOID, [x,y,0.02], respondable=False, static=True, renderable=False)
+                # cube_target.set_parent(self.taks_base)
+                cube_target._is_plane = True
+                cube_target.set_transparency(0)
+                cube.target = cube_target
+                self.cube_list.append(cube)
+                self.shape_lib[selected_obj].append(cube)
+                self._need_remove_objects.append(cube_target)
         self.register_graspable_objects(self.cube_list)
+        self._need_remove_objects+=self.cube_list
 
     def sample_method(self):
         self.spawn_space.clear()

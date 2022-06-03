@@ -1,6 +1,6 @@
 #Copy From the rlbench: https://github.com/stepjam/RLBench
 #seen
-colors = [
+seen_colors = [
     ('red', (1.0, 0.0, 0.0)),
     ('maroon', (0.5, 0.0, 0.0)),
     ('lime', (0.0, 1.0, 0.0)),
@@ -55,7 +55,7 @@ unseen_colors = [
     ('white', (1.0, 1.0, 1.0)),
 ]
 #seen objects
-object_shapes = {
+seen_object_shapes = {
     "star":{
         "path":"star/star_normal/star_normal.ttm"
     },
@@ -96,3 +96,26 @@ unseen_object_shapes = {
         "path":"basic_shapes/flower/flower.ttm"
     }
 }
+
+seen_planes ={
+    "rectangle":{
+        "path":"basic_shapes/plane_rectangle.ttm",
+        "directional": True
+    },
+    "round":{
+        "path":"basic_shapes/plane_round.ttm",
+        "directional": True
+    },
+    "star":{
+        "path":"basic_shapes/plane_star.ttm",
+        "directional": True
+    },
+    "triangle":{
+        "path":"basic_shapes/plane_triangle.ttm",
+        "directional": True
+    }
+}
+
+colors = seen_colors
+object_shapes = seen_object_shapes
+planes = seen_planes

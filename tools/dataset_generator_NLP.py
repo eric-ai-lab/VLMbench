@@ -40,12 +40,21 @@ flags.DEFINE_integer('episodes_per_task', 5,
                      'The number of episodes to collect per task.')
 flags.DEFINE_integer('variations', 1,
                      'Number of variations to collect per task. -1 for all.')
+flags.DEFINE_bool('save_configs', True,
+                     'whether also save the config for replay.')
 
 
 def check_and_make(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
 
+def save_configs(task_base, waypoint_sets, config, example_path):
+    check_and_make(example_path)
+    # Save the low-dimension data
+    with open(os.path.join(example_path, "configs.pkl"), 'wb') as f:
+        pickle.dump(config, f)
+    task_base.save_model(os.path.join(example_path, "task_base.ttm"))
+    waypoint_sets.save_model(os.path.join(example_path, "waypoint_sets.ttm"))
 
 def save_demo(demo, example_path):
 
@@ -311,6 +320,10 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
                     episode_path = os.path.join(episodes_path, EPISODE_FOLDER % (ex_idx))
                     with file_lock:
                         save_demo(demo, episode_path)
+                    if FLAGS.save_configs:
+                        task_base, waypoint_sets, config = task_env.read_config(demo.high_level_instructions)
+                        with file_lock:
+                            save_configs(task_base, waypoint_sets, config, episode_path)
                     ex_idx += 1
                     break
                 else:

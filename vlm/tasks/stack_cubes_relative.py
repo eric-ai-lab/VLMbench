@@ -18,21 +18,20 @@ class StackCubesRelative(StackCubes):
 
     def init_task(self) -> None:
         self.model_num = 2
+        self.class_num = 2
         return super().init_task()
 
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int) -> List[str]:
         self.object_target_relative0, self.object_target_relative1 = relative_pos_list[index]
-        random_objs = np.random.choice(list(self.shape_lib.keys()), 2, replace=False)
-        self.select_obj0 = self.shape_lib[random_objs[0]]
-        self.select_obj1 = self.shape_lib[random_objs[1]]
+        self.select_obj0 = self.cube_list[:self.model_num]
+        self.select_obj1 = self.cube_list[self.model_num:2*self.model_num]
         self.cube_list = [self.select_obj0[0], self.select_obj1[0]]
-
         self.cube_num = len(self.cube_list)
         color_index = np.random.choice(len(colors), len(self.cube_list), replace=True)
         for i, obj in enumerate(self.cube_list):
             Shape(obj.manipulated_part.visual).set_color(colors[color_index[i]][1])
 
-        return super().init_episode(index)
+        return None
 
     def is_static_workspace(self) -> bool:
         return True
@@ -40,32 +39,6 @@ class StackCubesRelative(StackCubes):
     def variation_count(self) -> int:
         # TODO: The number of variations for this task.
         return len(relative_pos_list)
-    
-    def import_objects(self, num):
-        object_numbers = [2]*len(object_shapes)
-        self.shape_lib = {obj:[] for obj in object_shapes}
-        all_objects = []
-        for obj, num in zip(object_shapes, object_numbers):
-            for i in range(num):
-                model = VLM_Object(self.pyrep, self.model_dir+object_shapes[obj]["path"], i)
-                relative_factor = scale_object(model, 1.25)
-                if abs(relative_factor-1)>1e-2:
-                    local_grasp_pose = model.manipulated_part.local_grasp
-                    local_grasp_pose[:, :3, 3] *= relative_factor
-                    model.manipulated_part.local_grasp = local_grasp_pose
-                # model.set_model(False)
-                model.set_parent(self.taks_base)
-                model_bbox = model.get_bounding_box()
-                x, y = model_bbox[1]-model_bbox[0]+0.02,  model_bbox[3]-model_bbox[2]+0.02
-                model_target = Shape.create(PrimitiveShape.CUBOID, [x,y,0.02], respondable=False, static=True, renderable=False)
-                # model_target.set_parent(self.taks_base)
-                model_target._is_plane = True
-                model_target.set_transparency(0)
-                model.target = model_target
-                model.set_position([0,0,0])
-                self.shape_lib[obj].append(model)
-                all_objects.append(model)
-        self.register_graspable_objects(all_objects)
     
     def sample_method(self):
         satisfied = False

@@ -46,6 +46,8 @@ class Task(object):
         self._waypoints_should_repeat = lambda: False
         self._initial_objs_in_scene = None
         self._stop_at_waypoint_index = -1
+        self._need_remove_objects = []
+        self.temporary_waypoints = []
 
     ########################
     # Overriding functions #
@@ -82,6 +84,12 @@ class Task(object):
         raise NotImplementedError(
             "'variation_count' must be defined and return an int.")
 
+    def modified_init_episode(self, index) -> None:
+        """
+        Used for the children tasks of the task temples.
+        """
+        pass
+    
     def get_low_dim_state(self) -> np.ndarray:
         """Gets the pose and various other properties of objects in the task.
 
@@ -211,6 +219,11 @@ class Task(object):
 
         Can be used for complex tasks that spawn many objects.
         """
+        if len(self._need_remove_objects)!=0:
+            for obj in self._need_remove_objects:
+                if obj.still_exists():
+                    obj.remove()
+            self._need_remove_objects = []
         if hasattr(self, "temporary_waypoints"):
             if len(self.temporary_waypoints)!=0:
                 for waypoint in self.temporary_waypoints:
