@@ -31,7 +31,7 @@ class StackCubesColor(StackCubes):
         color_names, rgbs = select_color(index, len(self.cube_list)-1, replace=False)
         for i, cube in enumerate(self.cube_list):
             Shape(cube.manipulated_part.visual).set_color(rgbs[i])
-            cube.manipulated_part.descriptions = f"the {color_names[i]} cube"
+            cube.manipulated_part.descriptions = f"the {color_names[i]} {obj.manipulated_partproperty['shape']}"
         return super().init_episode(index)
 
     def variation_count(self) -> int:
