@@ -147,11 +147,12 @@ class LoadedTask(object):
         self.pr.step_ui()
 
     def new_demo(self):
+        success = False
         try:
-            self.scene.get_demo(False, randomly_place=False)
+            _, success = self.scene.get_demo(False, randomly_place=False)
         except (WaypointError, NoWaypointsError, DemoError, Exception) as e:
             traceback.print_exc()
-        success, terminate = self.task.success()
+        # success, terminate = self.task.success()
         if success:
             print("Demo was a success!")
         self.scene.reset()

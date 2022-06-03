@@ -136,6 +136,25 @@ class Task(object):
                     info['forces'] = forces
                     info['torques'] = torques
                 information[obj.get_name()]=info
+
+        for obj in self._need_remove_objects:
+            if obj.still_exists():
+                childrens = obj.get_objects_in_tree(
+                        exclude_base=False, first_generation_only=False)
+                for child in childrens:
+                    info = {
+                        'id': child.get_handle(),
+                        'pose': child.get_pose(),
+                        'bbox':child.get_bounding_box()
+                    }
+                    if child.get_type() == ObjectType.JOINT:
+                        info['joint_position']= child.get_joint_position()
+                    elif child.get_type() == ObjectType.FORCE_SENSOR:
+                        forces, torques = child.read()
+                        info['forces'] = forces
+                        info['torques'] = torques
+                    information[child.get_name()]=info
+
         for i, waypoint in enumerate(self.get_waypoints(need_feasible=False)):
             if waypoint._waypoint.get_type() == ObjectType.DUMMY:
                 info = {'pose': [waypoint.pose]}
