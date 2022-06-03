@@ -125,12 +125,12 @@ class VLM_dataset(Dataset):
                     previous_waypoint = obs.current_waypoint_name
                     self.all_waypoints.append(previous_waypoint)
                     obs_select_inds.append(i)
-            for i in range(len(obs_select_inds)):
-                if i+1<len(obs_select_inds):
-                    random_i = np.random.randint(obs_select_inds[i], obs_select_inds[i+1])
-                else:
-                    random_i = np.random.randint(obs_select_inds[i], sequence_length)
-                obs_select_inds[i] = random_i
+            # for i in range(len(obs_select_inds)):
+            #     if i+1<len(obs_select_inds):
+            #         random_i = np.random.randint(obs_select_inds[i], obs_select_inds[i+1])
+            #     else:
+            #         random_i = np.random.randint(obs_select_inds[i], sequence_length)
+            #     obs_select_inds[i] = random_i
         if self.preprocess:
             preprocess_data_folder = self.dataset_path/episode/'preprocess_data'
 

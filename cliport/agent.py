@@ -2,6 +2,7 @@ from ntpath import join
 import os
 import numpy as np
 from time import time
+import cv2
 
 import torch
 import torch.nn.functional as F
@@ -1143,9 +1144,9 @@ class TransporterAgent_6Dof(TransporterAgent):
         pitch_i = torch.argmax(pitch_i).item()*angle
         output_dict.update({"roll": roll_i, "pitch": pitch_i})
         if draw_result:
-            import cv2
+            index = lang_goal[0].split("Step")[-1][:-1].strip()
             attn_conf = (attn_conf-attn_conf.min())/(attn_conf.max()-attn_conf.min())
-            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/atten_map_predict.png', np.uint8(attn_conf*255))
+            cv2.imwrite(f'/home/kaizhi/Documents/vlmbench/results/atten_map_predict_{index}.png', np.uint8(attn_conf*255))
             center_coordinates = (argmax[1], argmax[0])
             # print("predict:{}".format(center_coordinates))
             # Radius of circle
@@ -1160,13 +1161,13 @@ class TransporterAgent_6Dof(TransporterAgent):
             image = cv2.circle(image, center_coordinates, radius, color, thickness)
             predict_xy = xy_theta_tensors.mean(-1)
             predict_img = (predict_xy-predict_xy.min())/(predict_xy.max()-predict_xy.min())
-            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map_predict.png', np.uint8(predict_img*255))
+            cv2.imwrite(f'/home/kaizhi/Documents/vlmbench/results/place_map_predict_{index}.png', np.uint8(predict_img*255))
 
             center_coordinates = (place_argmax[1],place_argmax[0])
             color = (140,140,255)
             radius=2
             image_place = cv2.circle(image, center_coordinates, radius, color, thickness)
-            cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
+            cv2.imwrite(f'/home/kaizhi/Documents/vlmbench/results/place_map_{index}.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
         return img, [lang_goal[0]], None, output_dict
 # class LanguageAgent_6Dof(TransporterAgent_6Dof):
 class TwoStreamClipLingUNetLatTransporterAgent(TransporterAgent_6Dof):

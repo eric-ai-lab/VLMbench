@@ -1,4 +1,5 @@
 #Copy From the rlbench: https://github.com/stepjam/RLBench
+#seen
 colors = [
     ('red', (1.0, 0.0, 0.0)),
     ('maroon', (0.5, 0.0, 0.0)),
@@ -38,8 +39,8 @@ all_colors = [
     ('black', (0.0, 0.0, 0.0)),
     ('white', (1.0, 1.0, 1.0)),
 ]
-
-unseen = [
+#unseen
+unseen_colors = [
     ('red', (1.0, 0.0, 0.0)),
     ('lime', (0.0, 1.0, 0.0)),
     ('blue', (0.0, 0.0, 1.0)),
@@ -53,7 +54,7 @@ unseen = [
     ('black', (0.0, 0.0, 0.0)),
     ('white', (1.0, 1.0, 1.0)),
 ]
-
+#seen objects
 object_shapes = {
     "star":{
         "path":"star/star_normal/star_normal.ttm"
@@ -80,8 +81,8 @@ object_shapes = {
         "path":"basic_shapes/pentagon/pentagon.ttm"
     }
 }
-
-unseen_objects_shapes = {
+#unseen objects
+unseen_object_shapes = {
     "moon":{
         "path":"moon/moon_normal/moon_normal.ttm"
     },

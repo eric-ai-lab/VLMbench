@@ -186,6 +186,8 @@ def main_worker(gpu, ngpus_per_node, args):
             # DistributedDataParallel will divide and allocate batch_size to all
             # available GPUs if device_ids are not set
             model = torch.nn.parallel.DistributedDataParallel(model)
+    else:
+        model.cuda(args.gpu)
     parameters = [p for name, p in model.named_parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(parameters, args.lr)
 
@@ -199,7 +201,10 @@ def main_worker(gpu, ngpus_per_node, args):
                 loc = 'cuda:{}'.format(args.gpu)
                 checkpoint = torch.load(args.resume, map_location=loc)
             args.start_epoch = checkpoint['epoch']
-            model.module.load_state_dict(checkpoint['state_dict'])
+            if args.distributed:
+                model.module.load_state_dict(checkpoint['state_dict'])
+            else:
+                model.load_state_dict(checkpoint['state_dict'])
             try:
                 optimizer.load_state_dict(checkpoint['optimizer'])
             except:
@@ -216,7 +221,7 @@ def main_worker(gpu, ngpus_per_node, args):
                     use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks)
     val_dataset = VLM_dataset(args.data_dir, 'valid', img_size=args.img_size, unused_camera_list = args.unused_camera_list, preprocess = args.preprocess, 
                     use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks)
-    dist.barrier()
+
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
         val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset)
@@ -403,10 +408,7 @@ def val(data_loader, model, args, epoch):
             'p0':p0, 'p0_z':p0_z, 'p0_rotation':p0_rotation.as_euler('zxy', degrees=True),
             'p1':p1, 'p1_z':p1_z, 'p1_rotation':p1_rotation.as_euler('zxy', degrees=True)}
         with torch.no_grad():
-            if args.baseline_mode == 'cliport':
-                loss_dict = model(inp, train_attn=True, train_tansport=True)
-            else:
-                loss_dict = model(inp, epoch)
+            loss_dict = model(inp)
         if losses == {}:
             for loss_term in loss_dict:
                 losses[loss_term] = AverageMeter(loss_term)
@@ -415,8 +417,9 @@ def val(data_loader, model, args, epoch):
         loss = sum(l.item() for l in loss_dict.values())
         total_loss.append(loss)
     total_loss = torch.tensor(total_loss).cuda(args.gpu)
-    dist.barrier()
-    dist.all_reduce(total_loss)
+    if args.distributed:
+        dist.barrier()
+        dist.all_reduce(total_loss)
     avg_loss = total_loss.mean().item()
     if args.rank==0:
         tmp_str = 'Epoch [{}/{}] Val_loss: {:.4f} '.format(epoch + 1, args.epochs, avg_loss)

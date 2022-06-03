@@ -195,7 +195,7 @@ if __name__=="__main__":
     recorder = None
     need_test_numbers = 100
     
-    renew_obs = True
+    renew_obs = False
     need_post_grap = True
     need_pre_move = False
     # task_files = ['drop_pen_color', 'drop_pen_relative', 'drop_pen_size']
