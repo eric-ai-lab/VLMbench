@@ -46,7 +46,7 @@ class Model_Modifer(object):
             part = Shape(m["orginal_name"])
             part_name = m["name"]
             part.set_name(part_name)
-            part.compute_mass_and_inertia(1000)
+            part.compute_mass_and_inertia(500)
             part.set_renderable(False)
             part.set_respondable(True)
             # part.set_dynamic(True)
@@ -63,8 +63,12 @@ class Model_Modifer(object):
                     if os.path.exists(pose_path):
                         m["local_grasp_pose_path"] = "{}.pkl".format(m["local_grasp_pose_path"])
                         continue
-                grasp_mesh_path = os.path.join(save_path, f"{part_name}.ply")
-                m["local_grasp_pose_path"] = f"{part_name}.pkl"
+                if "local_grasp_pose_path" in m:
+                    grasp_mesh_path = os.path.join(save_path, f"{m['local_grasp_pose_path']}.ply")
+                    m["local_grasp_pose_path"] = f"{m['local_grasp_pose_path']}.pkl"
+                else:
+                    grasp_mesh_path = os.path.join(save_path, f"{part_name}.ply")
+                    m["local_grasp_pose_path"] = f"{part_name}.pkl"
                 self.extra_grasp_poses(part, grasp_mesh_path)
 
         with open(os.path.join(save_path, f"{object_name}.json"), "w") as f:
@@ -282,58 +286,58 @@ if __name__=="__main__":
     }
     mc_drawer1 = {
         "class": "drawer",
-        "name": "drawer1",
+        "name": "drawer2",
         "articulated": True,
         "constraints": {
-            "drawer_joint_top":[0, 1],
-            "drawer_joint_middle":[0, 2],
-            "drawer_joint_bottom":[0, 3]
+            "Prismatic_upper_joint":[0, 1],
+            "Prismatic_middle_joint":[0, 2],
+            "Prismatic_bottom_joint":[0, 3]
         },
         "highest_part":0,
         "manipulated_part":[1,2,3],
         "parts":[
             {
-                "orginal_name":"drawer_frame",
-                "name": "drawer1_frame",
+                "orginal_name":"cabinet8_base",
+                "name": "drawer2_base",
                 "graspable": False,
                 "property":{
-                    "shape": "the frame of drawer",
+                    "shape": "base of cabinet",
                     "color": None,
                     "size": None,
                     "relative_pos": None
                 }
             },
             {
-                "orginal_name":"drawer_top",
-                "name": "drawer1_top",
+                "orginal_name":"cabinet8_upper_drawer",
+                "name": "drawer2_top",
                 "graspable": False,
-                "local_grasp_pose_path": "drawer1_top",
+                "local_grasp_pose_path": "small_drawer",
                 "property":{
-                    "shape": "drawer",
+                    "shape": "top drawer",
                     "color": None,
                     "size": None,
                     "relative_pos": None
                 }
             },
             {
-                "orginal_name":"drawer_middle",
-                "name": "drawer1_middle",
+                "orginal_name":"cabinet8_middle_drawer",
+                "name": "drawer2_middle",
                 "graspable": False,
-                "local_grasp_pose_path": "drawer1_top",
+                "local_grasp_pose_path": "large_drawer",
                 "property":{
-                    "shape": "drawer",
+                    "shape": "middle drawer",
                     "color": None,
                     "size": None,
                     "relative_pos": None
                 }
             },
             {
-                "orginal_name":"drawer_bottom",
-                "name": "drawer1_bottom",
+                "orginal_name":"cabinet8_bottom_drawer",
+                "name": "drawer2_bottom",
                 "graspable": False,
-                "local_grasp_pose_path": "drawer1_top",
+                "local_grasp_pose_path": "large_drawer",
                 "property":{
-                    "shape": "drawer",
+                    "shape": "bottom drawer",
                     "color": None,
                     "size": None,
                     "relative_pos": None
@@ -688,6 +692,41 @@ if __name__=="__main__":
             }
         ]
     }
+    model_config_cabinet = {
+        "class": "cabinet",
+        "name": "cabinet5",
+        "articulated": True,
+        "constraints": {
+            "Prismatic_joint":[0, 1],
+        },
+        "highest_part":0,
+        "manipulated_part":[1],
+        "parts":[
+            {
+                "orginal_name":"cabinet5_base",
+                "name": "cabinet5_base",
+                "graspable": False,
+                "property":{
+                    "shape": "base of cabinet",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            },
+            {
+                "orginal_name":"cabinet5_door",
+                "name": "cabinet5_door",
+                "graspable": False,
+                "local_grasp_pose_path": "cabinet5_handle",
+                "property":{
+                    "shape": "door of cabinet",
+                    "color": None,
+                    "size": None,
+                    "relative_pos": None
+                }
+            }
+        ]
+    }
     # modifer.import_model(letters_config)
-    modifer.extra_from_ttm(model_config_door1,"./vlm/object_models/door/door1_original.ttm")
+    modifer.extra_from_ttm(model_config_cabinet,"./vlm/object_models/cabinet/cabinet5_original.ttm")
     modifer.pr.shutdown()

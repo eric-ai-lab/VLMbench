@@ -60,12 +60,12 @@ class VLM_Object(Shape):
                 part.visual = part.get_handle()
             part.descriptions = None
             self.parts.append(part)
-        if len(self.config["manipulated_part"])==1:
-            self.manipulated_part = self.parts[self.config["manipulated_part"][0]]
-        else:
-            self.manipulated_parts = []
-            for i in self.config["manipulated_part"]:
-                self.manipulated_parts.append(self.parts[i])
+
+        self.manipulated_parts = []
+        for i in self.config["manipulated_part"]:
+            self.manipulated_parts.append(self.parts[i])
+        self.manipulated_part = self.manipulated_parts[0]
+        
         self.articulated = self.config["articulated"]
         if self.articulated:
             self.constraints = []
