@@ -48,7 +48,6 @@ class Task(object):
         self._stop_at_waypoint_index = -1
         self._need_remove_objects = []
         self.temporary_waypoints = []
-
     ########################
     # Overriding functions #
     ########################

@@ -7,34 +7,16 @@ from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.dummy import Dummy
 from amsolver.backend.unit_tasks import T0_ObtainControl, T1_MoveObjectGoal, TargetSpace, VLM_Object
 from amsolver.backend.utils import scale_object
-from amsolver.const import colors
+from amsolver.const import colors, sorter_objects
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from amsolver.backend.task import Task
 
 class PlaceIntoShapeSorter(Task):
-    def __init__(self, pyrep, robot):
-        super().__init__(pyrep, robot)
-        self.model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
-        self.object_dict = {
-            "star":{
-                "path":self.model_dir+"star/star_normal/star_normal.ttm"
-            },
-            "moon":{
-                "path":self.model_dir+"moon/moon_normal/moon_normal.ttm"
-            },
-            "triangular":{
-                "path":self.model_dir+"triangular/triangular_normal/triangular_normal.ttm"
-            },
-            "cylinder":{
-                "path":self.model_dir+"cylinder/cylinder_normal/cylinder_normal.ttm"
-            },
-            "cube":{
-                "path":self.model_dir+"cube/cube_basic/cube_basic.ttm"
-            }
-        }
 
     def init_task(self) -> None:
+        self.model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
+        self.object_dict = sorter_objects
         self.spawn_space = SpawnBoundary([Shape('workspace')])
         self.success_sensor = ProximitySensor('success')
         self.sorter = Shape("shape_sorter")
@@ -106,7 +88,8 @@ class PlaceIntoShapeSorter(Task):
     def import_objects(self):
         for obj, num in zip(self.object_dict, self.object_numbers):
             for i in range(num):
-                model = VLM_Object(self.pyrep, self.object_dict[obj]["path"], i)
+                model_path = self.model_dir+self.object_dict[obj]["path"]
+                model = VLM_Object(self.pyrep, model_path, i)
                 model.set_parent(self.taks_base)
                 model.set_position([0, 0, 0])
                 target = Dummy(f"{model.obj_class}_target")

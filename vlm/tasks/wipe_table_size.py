@@ -12,7 +12,7 @@ class WipeTableSize(WipeTable):
         # self.model_num = 3
         return super().init_task()
         
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int):
 
         target_size = size_list[index]
         if target_size == "small":
@@ -23,14 +23,14 @@ class WipeTableSize(WipeTable):
             large_target = self.target_list[0]
         small_target.target_space_descriptions = "the smaller area"
         large_target.target_space_descriptions = "the larger area"
-        for target, scale_factor in zip([small_target, large_target],[np.random.uniform(0.75, 0.9), np.random.uniform(1.0, 1.1)]):
+        for target, scale_factor in zip([small_target, large_target],[np.random.uniform(0.75, 0.9), np.random.uniform(1.0, 1.2)]):
             scale_object(target, scale_factor)
 
         target_space_colors = np.random.choice(len(colors), len(self.target_list), replace=True)
         for i, target in enumerate(self.target_list):
             target.set_color(colors[target_space_colors[i]][1])
 
-        return super().init_episode(index)
+        return None
     
     def variation_count(self) -> int:
         return len(size_list)

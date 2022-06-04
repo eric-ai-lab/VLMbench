@@ -41,18 +41,12 @@ all_colors = [
 ]
 #unseen
 unseen_colors = [
-    ('red', (1.0, 0.0, 0.0)),
-    ('lime', (0.0, 1.0, 0.0)),
-    ('blue', (0.0, 0.0, 1.0)),
-    ('yellow', (1.0, 1.0, 0.0)),
     ('olive', (0.5, 0.5, 0.0)),
     ('purple', (0.5, 0.0, 0.5)),
     ('teal', (0, 0.5, 0.5)),
     ('azure', (0.0, 0.5, 1.0)),
     ('violet', (0.5, 0.0, 1.0)),
     ('rose', (1.0, 0.0, 0.5)),
-    ('black', (0.0, 0.0, 0.0)),
-    ('white', (1.0, 1.0, 1.0)),
 ]
 #seen objects
 seen_object_shapes = {
@@ -104,11 +98,11 @@ seen_planes ={
     },
     "round":{
         "path":"basic_shapes/plane_round.ttm",
-        "directional": True
+        "directional": False
     },
     "star":{
         "path":"basic_shapes/plane_star.ttm",
-        "directional": True
+        "directional": False
     },
     "triangle":{
         "path":"basic_shapes/plane_triangle.ttm",
@@ -116,6 +110,28 @@ seen_planes ={
     }
 }
 
+seen_sorter_objects = {
+    "star":{
+        "path":"star/star_normal/star_normal.ttm"
+    },
+    "triangular":{
+        "path":"triangular/triangular_normal/triangular_normal.ttm"
+    },
+    "cylinder":{
+        "path":"cylinder/cylinder_normal/cylinder_normal.ttm"
+    },
+    "cube":{
+        "path":"cube/cube_basic/cube_basic.ttm"
+    }
+}
+
+unseen_sorter_objects = {
+    "moon":{
+        "path":"moon/moon_normal/moon_normal.ttm"
+    },
+}
+
 colors = seen_colors
 object_shapes = seen_object_shapes
 planes = seen_planes
+sorter_objects = seen_sorter_objects

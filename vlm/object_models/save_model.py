@@ -728,5 +728,5 @@ if __name__=="__main__":
         ]
     }
     # modifer.import_model(letters_config)
-    modifer.extra_from_ttm(model_config_cabinet,"./vlm/object_models/cabinet/cabinet5_original.ttm")
+    modifer.extra_from_ttm(wiper1_config,"./vlm/object_models/wiper/sponge_original.ttm")
     modifer.pr.shutdown()

@@ -11,13 +11,13 @@ class WipeTableRelative(WipeTable):
     def init_task(self) -> None:
         return super().init_task()
         
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int):
         self.target_relative = relative_pos_list[index]
         target_space_colors = np.random.choice(len(colors), len(self.target_list), replace=True)
         for i, target in enumerate(self.target_list):
             target.set_color(colors[target_space_colors[i]][1])
 
-        return super().init_episode(index)
+        return None
     
     def variation_count(self) -> int:
         return len(relative_pos_list)

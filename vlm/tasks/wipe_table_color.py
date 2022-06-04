@@ -11,13 +11,13 @@ class WipeTableColor(WipeTable):
         # self.model_num = 3
         return super().init_task()
         
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int):
         color_names, rgbs = select_color(index, len(self.target_list)-1)
         for i, target in enumerate(self.target_list):
             target.set_color(rgbs[i])
             target.target_space_descriptions= "the {} area".format(color_names[i])
 
-        return super().init_episode(index)
+        return None
     
     def variation_count(self) -> int:
         return len(colors)
