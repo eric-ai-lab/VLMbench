@@ -284,21 +284,21 @@ if __name__=="__main__":
             }
         ]
     }
-    mc_drawer1 = {
+    mc_drawer = {
         "class": "drawer",
-        "name": "drawer2",
+        "name": "drawer3",
         "articulated": True,
         "constraints": {
-            "Prismatic_upper_joint":[0, 1],
-            "Prismatic_middle_joint":[0, 2],
-            "Prismatic_bottom_joint":[0, 3]
+            "top_joint":[0, 1],
+            "middle_joint":[0, 2],
+            "bottom_joint":[0, 3]
         },
         "highest_part":0,
         "manipulated_part":[1,2,3],
         "parts":[
             {
-                "orginal_name":"cabinet8_base",
-                "name": "drawer2_base",
+                "orginal_name":"drawer_base",
+                "name": "drawer3_base",
                 "graspable": False,
                 "property":{
                     "shape": "base of cabinet",
@@ -308,10 +308,10 @@ if __name__=="__main__":
                 }
             },
             {
-                "orginal_name":"cabinet8_upper_drawer",
-                "name": "drawer2_top",
+                "orginal_name":"top_drawer",
+                "name": "drawer3_top",
                 "graspable": False,
-                "local_grasp_pose_path": "small_drawer",
+                "local_grasp_pose_path": "handle",
                 "property":{
                     "shape": "top drawer",
                     "color": None,
@@ -320,10 +320,10 @@ if __name__=="__main__":
                 }
             },
             {
-                "orginal_name":"cabinet8_middle_drawer",
-                "name": "drawer2_middle",
+                "orginal_name":"middle_drawer",
+                "name": "drawer3_middle",
                 "graspable": False,
-                "local_grasp_pose_path": "large_drawer",
+                "local_grasp_pose_path": "handle",
                 "property":{
                     "shape": "middle drawer",
                     "color": None,
@@ -332,10 +332,10 @@ if __name__=="__main__":
                 }
             },
             {
-                "orginal_name":"cabinet8_bottom_drawer",
-                "name": "drawer2_bottom",
+                "orginal_name":"bottom_drawer",
+                "name": "drawer3_bottom",
                 "graspable": False,
-                "local_grasp_pose_path": "large_drawer",
+                "local_grasp_pose_path": "handle",
                 "property":{
                     "shape": "bottom drawer",
                     "color": None,
@@ -580,18 +580,17 @@ if __name__=="__main__":
     }
     model_config_fridge = {
         "class": "fridge",
-        "name": "fridge1",
+        "name": "fridge2",
         "articulated": True,
         "constraints": {
-            "top_joint":[0, 1],
-            "bottom_joint":[0, 2]
+            "Revolute_joint":[0, 1]
         },
         "highest_part":0,
         "manipulated_part":[1],
         "parts":[
             {
-                "orginal_name":"fridge_base",
-                "name": "fridge1_base",
+                "orginal_name":"fridge2_base",
+                "name": "fridge2_base",
                 "graspable": False,
                 "property":{
                     "shape": "base of fridge",
@@ -601,42 +600,42 @@ if __name__=="__main__":
                 }
             },
             {
-                "orginal_name":"door_top",
-                "name": "fridge1_top_door",
+                "orginal_name":"fridge2_door",
+                "name": "fridge2_door",
                 "graspable": False,
                 "property":{
-                    "shape": "top door of fridge",
+                    "shape": "door of fridge",
                     "color": None,
                     "size": None,
                     "relative_pos": None
                 }
             },
-            {
-                "orginal_name":"door_bottom",
-                "name": "fridge1_bottom_door",
-                "graspable": False,
-                "property":{
-                    "shape": "bottom door of fridge",
-                    "color": None,
-                    "size": None,
-                    "relative_pos": None
-                }
-            }
+            # {
+            #     "orginal_name":"door_bottom",
+            #     "name": "fridge1_bottom_door",
+            #     "graspable": False,
+            #     "property":{
+            #         "shape": "bottom door of fridge",
+            #         "color": None,
+            #         "size": None,
+            #         "relative_pos": None
+            #     }
+            # }
         ]
     }
     model_config_micro = {
         "class": "microwave",
-        "name": "microwave1",
+        "name": "microwave4",
         "articulated": True,
         "constraints": {
-            "microwave_door_joint":[0, 1]
+            "Revolute_joint":[0, 1]
         },
         "highest_part":0,
         "manipulated_part":[1],
         "parts":[
             {
-                "orginal_name":"microwave_frame_resp",
-                "name": "microwave1_base",
+                "orginal_name":"microwave4_base",
+                "name": "microwave4_base",
                 "graspable": False,
                 "property":{
                     "shape": "base of microwave",
@@ -646,8 +645,8 @@ if __name__=="__main__":
                 }
             },
             {
-                "orginal_name":"microwave_door_resp",
-                "name": "microwave1_door",
+                "orginal_name":"microwave4_door",
+                "name": "microwave4_door",
                 "graspable": False,
                 "property":{
                     "shape": "door of microwave",
@@ -728,5 +727,5 @@ if __name__=="__main__":
         ]
     }
     # modifer.import_model(letters_config)
-    modifer.extra_from_ttm(wiper1_config,"./vlm/object_models/wiper/sponge_original.ttm")
+    modifer.extra_from_ttm(model_config_micro,"./vlm/object_models/microwave/microwave4_original.ttm")
     modifer.pr.shutdown()

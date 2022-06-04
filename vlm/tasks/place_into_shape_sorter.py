@@ -13,10 +13,12 @@ from amsolver.backend.spawn_boundary import SpawnBoundary
 from amsolver.backend.task import Task
 
 class PlaceIntoShapeSorter(Task):
-
+    def __init__(self, pyrep, robot):
+        super().__init__(pyrep, robot)
+        self.object_dict = sorter_objects
+        
     def init_task(self) -> None:
         self.model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
-        self.object_dict = sorter_objects
         self.spawn_space = SpawnBoundary([Shape('workspace')])
         self.success_sensor = ProximitySensor('success')
         self.sorter = Shape("shape_sorter")

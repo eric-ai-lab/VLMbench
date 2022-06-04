@@ -2,7 +2,7 @@
 import logging
 import pickle
 from sys import api_version
-from typing import List, Callable
+from typing import List, Callable, Tuple
 
 import numpy as np
 from pyquaternion import Quaternion
@@ -85,7 +85,7 @@ class TaskEnvironment(object):
     def variation_count(self) -> int:
         return self._task.variation_count()
 
-    def reset(self) -> (List[str], Observation):
+    def reset(self) -> Tuple[List[str], Observation]:
         self._scene.reset()
         try:
             ctr_loop = self._robot.arm.joints[0].is_control_loop_enabled()
@@ -225,7 +225,7 @@ class TaskEnvironment(object):
 
         return observations
 
-    def step(self, action, collision_checking=None, use_auto_move=True, recorder = None) -> (Observation, int, bool):
+    def step(self, action, collision_checking=None, use_auto_move=True, recorder = None) -> Tuple[Observation, int, bool]:
         # returns observation, reward, done, info
         if not self._reset_called:
             raise RuntimeError(
@@ -542,7 +542,7 @@ class TaskEnvironment(object):
                     'Could not collect demos. Maybe a problem with the task?')
         return demos, success_all
 
-    def reset_to_demo(self, demo: Demo) -> (List[str], Observation):
+    def reset_to_demo(self, demo: Demo) -> Tuple[List[str], Observation]:
         demo.restore_state()
         return self.reset()
     

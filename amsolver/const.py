@@ -131,7 +131,67 @@ unseen_sorter_objects = {
     },
 }
 
+seen_drawer_list = [
+        {
+            "path": "drawer/drawer1/drawer1.ttm",
+            "max_joint": 0.2
+        },
+        {
+            "path": "drawer/drawer2/drawer2.ttm",
+            "max_joint": 0.2
+        },
+        {
+            "path": "drawer/drawer3/drawer3.ttm",
+            "max_joint": 0.3
+        }
+]
+
+unseen_drawer_list = [
+        {
+            "path": "drawer/drawer3/drawer3.ttm",
+            "max_joint": 0.3
+        }
+]
+
+seen_cabinet_list = [
+        {
+            "path": "cabinet/cabinet6/cabinet6.ttm",
+            "max_joint": 0.19
+        },
+        {
+            "path": "cabinet/cabinet5/cabinet5.ttm",
+            "max_joint": 0.32
+        }
+]
+
+seen_door_list = [
+        {
+            "path": "fridge/fridge1/fridge1.ttm"
+        },
+        {
+            "path": "fridge/fridge2/fridge2.ttm"
+        },
+        {
+            "path": "microwave/microwave1/microwave1.ttm"
+        },
+        {
+            "path": "microwave/microwave4/microwave4.ttm"
+        }
+]
+
+seen_complex_door_list = [
+        {
+            "path": "door/door1/door1.ttm"
+        },
+        {
+            "path": "door/door2/door2.ttm"
+        }
+]
+
 colors = seen_colors
 object_shapes = seen_object_shapes
 planes = seen_planes
 sorter_objects = seen_sorter_objects
+drawer_list = seen_drawer_list
+cabinet_list = seen_cabinet_list
+door_list = seen_door_list

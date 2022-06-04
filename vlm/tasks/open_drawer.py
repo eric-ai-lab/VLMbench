@@ -1,4 +1,5 @@
 import os
+import random
 import numpy as np
 from typing import List, Tuple
 from pyrep.objects.shape import Shape
@@ -8,50 +9,28 @@ from amsolver.backend.spawn_boundary import SpawnBoundary
 from amsolver.backend.task import Task
 from amsolver.backend.conditions import JointCondition
 from amsolver.backend.unit_tasks import T0_ObtainControl, T2_MoveObjectConstraints, TargetSpace, VLM_Object
+from amsolver.const import drawer_list
 
 drawer_states = {
     "open":["Fully close", "Slightly close"],
     "close":["Fully open", "Slightly open"]
 }
-drawer_list = {
-    "seen":[
-        {
-            "path": "drawer/drawer1/drawer1.ttm",
-            "max_joint": 0.2
-        },
-        {
-            "path": "drawer/drawer2/drawer2.ttm",
-            "max_joint": 0.2
-        },
-        {
-            "path": "cabinet/cabinet6/cabinet6.ttm",
-            "max_joint": 0.19
-        },
-        {
-            "path": "cabinet/cabinet5/cabinet5.ttm",
-            "max_joint": 0.32
-        }
-    ]
-}
+
 class OpenDrawer(Task):
 
     def init_task(self) -> None:
         self.spawn_space = SpawnBoundary([Shape('workspace')])
         self.model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
-        self._selected_cabinet = drawer_list["seen"][3]
-        model_path = self.model_dir+self._selected_cabinet["path"]
-        self.drawer = VLM_Object(self.pyrep, model_path, 0)
-        self._drawer_init_ori = self.drawer.get_orientation()
-        self._drawer_init_state = self.drawer.get_configuration_tree()
         self.temporary_waypoints = []
         self.task_base = self.get_base()
-        self.drawer.set_parent(Shape("boundary_root"))
         self.boundary_root_ori = Shape("boundary_root").get_orientation()
 
     def init_episode(self, index: int) -> List[str]:
+        self.import_objects()
         self.variation_index = index
         select_index = index // 4
         setting_index = index % 4
+        select_index = select_index % len(self.drawer.manipulated_parts)
         self.manipulate_drawer = self.drawer.manipulated_parts[select_index]
         self.drawer_joint = self.drawer.constraints[select_index]
         try_times = 0
@@ -86,10 +65,19 @@ class OpenDrawer(Task):
 
     def variation_count(self) -> int:
         # TODO: The number of variations for this task.
-        return 4
+        return 12
 
     def is_static_workspace(self) -> bool:
         return True
+
+    def import_objects(self):
+        self._selected_cabinet = random.choice(drawer_list)
+        model_path = self.model_dir+self._selected_cabinet["path"]
+        self.drawer = VLM_Object(self.pyrep, model_path, 0)
+        self._drawer_init_ori = self.drawer.get_orientation()
+        self._drawer_init_state = self.drawer.get_configuration_tree()
+        self.drawer.set_parent(Shape("boundary_root"))
+        self._need_remove_objects.append(self.drawer)
 
     def sample_method(self):
         self.pyrep.set_configuration_tree(self._drawer_init_state)
@@ -126,3 +114,14 @@ class OpenDrawer(Task):
                 goal_distance = 0
         self.register_success_conditions([JointCondition(self.drawer_joint, detect_distance, detect_bound)])
         return goal_distance, goal_state
+    
+    def load(self, ttms_folder=None):
+        if Shape.exists('open_drawer'):
+            return Dummy('open_drawer')
+        ttm_file = os.path.join(ttms_folder, 'open_drawer.ttm')
+        self._base_object = self.pyrep.import_model(ttm_file)
+        return self._base_object
+    
+    def get_base(self) -> Dummy:
+        self._base_object = Dummy('open_drawer')
+        return self._base_object
