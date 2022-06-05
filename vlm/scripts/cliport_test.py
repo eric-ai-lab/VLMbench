@@ -149,7 +149,7 @@ class CliportAgent(object):
 
 def load_test_config(data_folder: Path, task_name):
     episode_list = []
-    for path in data_folder.rglob('low_dim_obs*'):
+    for path in data_folder.rglob('configs*'):
         t_name = path.parents[3].name
         if t_name == task_name:
             episode_list.append(path.parent)
@@ -222,7 +222,7 @@ if __name__=="__main__":
                 break
             task_base = str(e/"task_base.ttm")
             waypoint_sets = str(e/"waypoint_sets.ttm")
-            config = str(e/"low_dim_obs.pkl")
+            config = str(e/"configs.pkl")
             descriptions, obs = task.load_config(task_base, waypoint_sets, config)
             waypoints_info = {name: obj for name, obj in obs.object_informations.items() if "waypoint" in name}
             all_time+=1
