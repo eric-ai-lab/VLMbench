@@ -14,14 +14,14 @@ class PourDemoRelative(PourDemo):
     def init_task(self) -> None:
         return super().init_task()
         
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int):
         self.target_relative, self.compared_relative = relative_pos_list[index]
 
         color_index = np.random.choice(len(colors), len(self.object_list), replace=True)
         for i, obj in enumerate(self.object_list):
             Shape(obj.manipulated_part.visual).set_color(colors[color_index[i]][1])
 
-        return super().init_episode(index)
+        return None
     
     def variation_count(self) -> int:
         return len(relative_pos_list)
@@ -39,3 +39,5 @@ class PourDemoRelative(PourDemo):
             self.manipulated_obj.descriptions = "the {} {}".format(object_relative_pose, self.manipulated_obj.property["shape"])
             comparted_obj.manipulated_part.descriptions = "the {} {}".format(self.compared_relative, comparted_obj.manipulated_part.property["shape"])
             break
+        for _ in range(5):
+            self.pyrep.step()

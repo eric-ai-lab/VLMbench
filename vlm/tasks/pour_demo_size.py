@@ -8,14 +8,15 @@ from vlm.tasks.pour_demo import PourDemo
 
 size_list = ["small", "large"]
 class PourDemoSize(PourDemo):
-    def init_task(self) -> None:
-        super().init_task()
-        self.obj_init_pose = []
-        for obj in self.object_list:
-            self.obj_init_pose.append(obj.get_pose())
-        self.ignore_collisions = True
+    # def init_task(self) -> None:
+    #     super().init_task()
+    #     self.obj_init_pose = []
+    #     for obj in self.object_list:
+    #         self.obj_init_pose.append(obj.get_pose())
+    #     self.ignore_collisions = True
         
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int):
+        self.ignore_collisions = True
         obj_size = size_list[index]
         if obj_size == "small":
             small_obj = self.object_list[0]
@@ -36,13 +37,12 @@ class PourDemoSize(PourDemo):
         for i, obj in enumerate(self.object_list):
             Shape(obj.manipulated_part.visual).set_color(colors[color_index[i]][1])
 
-        return super().init_episode(index)
-    
+        return None
     def variation_count(self) -> int:
         return len(size_list)
     
-    def cleanup(self) -> None:
-        for obj, pose in zip(self.object_list, self.obj_init_pose):
-            if obj.still_exists():
-                obj.set_pose(pose)
-        return super().cleanup()
+    # def cleanup(self) -> None:
+    #     for obj, pose in zip(self.object_list, self.obj_init_pose):
+    #         if obj.still_exists():
+    #             obj.set_pose(pose)
+    #     return super().cleanup()

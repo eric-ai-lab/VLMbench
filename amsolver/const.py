@@ -188,6 +188,30 @@ seen_complex_door_list = [
         }
 ]
 
+seen_mug_list = [
+    {
+        "path": "mug/mug1/mug1.ttm"
+    },
+    {
+        "path": "mug/mug2/mug2.ttm"
+    },
+    {
+        "path": "mug/mug3/mug3.ttm"
+    },
+    {
+        "path": "mug/mug4/mug4.ttm"
+    },
+]
+
+unseen_mug_list = [
+    {
+        "path": "mug/mug5/mug5.ttm"
+    },
+    {
+        "path": "mug/mug6/mug6.ttm"
+    }
+]
+
 colors = seen_colors
 object_shapes = seen_object_shapes
 planes = seen_planes
@@ -195,3 +219,4 @@ sorter_objects = seen_sorter_objects
 drawer_list = seen_drawer_list
 cabinet_list = seen_cabinet_list
 door_list = seen_door_list
+mug_list = seen_mug_list

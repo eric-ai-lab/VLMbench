@@ -11,14 +11,14 @@ class PourDemoColor(PourDemo):
         self.model_num = 3
         return super().init_task()
         
-    def init_episode(self, index: int) -> List[str]:
+    def modified_init_episode(self, index: int):
         color_names, rgbs = select_color(index, len(self.object_list)-1, replace=False)
         for i, obj in enumerate(self.object_list):
             Shape(obj.manipulated_part.visual).set_color(rgbs[i])
             obj.manipulated_part.property["color"] = color_names[i]
             obj.manipulated_part.descriptions = "the {} {}".format(color_names[i], obj.manipulated_part.property["shape"])
 
-        return super().init_episode(index)
+        return None
     
     def variation_count(self) -> int:
         return len(colors)

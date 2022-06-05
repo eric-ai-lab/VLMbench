@@ -452,15 +452,15 @@ if __name__=="__main__":
     }
     mug_config = {
         "class": "mug",
-        "name": "mug1",
+        "name": "mug6",
         "articulated": False,
         "constraints": None,
         "highest_part":0,
         "manipulated_part":[0],
         "parts":[
             {
-                "orginal_name":"cup_target",
-                "name": "mug1",
+                "orginal_name":"mug6",
+                "name": "mug6",
                 "graspable": True,
                 "property":{
                     "shape": "mug",
@@ -727,5 +727,5 @@ if __name__=="__main__":
         ]
     }
     # modifer.import_model(letters_config)
-    modifer.extra_from_ttm(model_config_micro,"./vlm/object_models/microwave/microwave4_original.ttm")
+    modifer.extra_from_ttm(mug_config,"./vlm/object_models/mug/mug6_original.ttm")
     modifer.pr.shutdown()

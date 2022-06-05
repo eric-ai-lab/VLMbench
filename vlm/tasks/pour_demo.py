@@ -1,3 +1,4 @@
+import random
 from turtle import shape
 from typing import List
 import numpy as np
@@ -9,7 +10,7 @@ from pyrep.objects.proximity_sensor import ProximitySensor
 from amsolver.backend.task import Task
 from amsolver.backend.unit_tasks import T0_ObtainControl, T1_MoveObjectGoal, T2_MoveObjectConstraints, TargetSpace, VLM_Object
 from amsolver.backend.utils import get_relative_position_xy, scale_object
-from amsolver.const import colors
+from amsolver.const import mug_list
 from amsolver.backend.conditions import ConditionSet, DetectedCondition, Condition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from scipy.spatial.transform import Rotation as R
@@ -20,15 +21,16 @@ class PourDemo(Task):
         self.spawn_space = SpawnBoundary([Shape('workspace')])
         self.model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
         self.temporary_waypoints = []
-        self.object_list = []
         self.taks_base = self.get_base()
         if not hasattr(self, "model_num"):
             self.model_num = 2
-        self.import_objects(self.model_num)
+        
         self.ignore_collisions = False
 
     def init_episode(self, index: int) -> List[str]:
         # self.pyrep.set_configuration_tree(self.task_init_states)
+        self.import_objects(self.model_num)
+        self.modified_init_episode(index)
         self.variation_index = index
         try_times = 200
         pour_obj = self.object_list[0]
@@ -95,11 +97,11 @@ class PourDemo(Task):
         return 1
 
     def cleanup(self) -> None:
-        super().cleanup()
         for d in self.drops:
             if d.still_exists():
                 d.remove()
         self.drops.clear()
+        super().cleanup()
 
     def is_static_workspace(self) -> bool:
         return True
@@ -116,8 +118,10 @@ class PourDemo(Task):
         return self._base_object
     
     def import_objects(self, num=2):
+        self.object_list = []
         if not hasattr(self, "model_path"):
-            model_path = self.model_dir+"mug/mug2/mug2.ttm"
+            selected_obj = random.choice(mug_list)
+            model_path = self.model_dir+selected_obj['path']
         else:
             model_path = self.model_dir+self.model_path
         for i in range(num):
@@ -137,12 +141,16 @@ class PourDemo(Task):
             #     obj.manipulated_part.local_grasp = local_grasp_pose
             obj.set_parent(self.taks_base)
             self.object_list.append(obj)
+            self._need_remove_objects.append(obj)
         self.register_graspable_objects(self.object_list)
+        self.pyrep.step()
     
     def sample_method(self):
         self.spawn_space.clear()
         for obj in self.object_list:
             self.spawn_space.sample(obj, min_distance=0.1)
+        for _ in range(5):
+            self.pyrep.step()
 
     @staticmethod
     def calculate_pre_pour_pose(container_pour, container_recv, tip, n_pos_sample=20, n_rot_sample=5, angle_threshold=np.pi/8):
@@ -198,7 +206,8 @@ class PourDemo(Task):
         obj_goal_pose_set[:, 3, 3] = 1
         obj_goal_pose_set[:, :3, 3] = container_pour.buttom_point.get_position()
         axis_z = container_recv.buttom_point.get_position() - container_pour.buttom_point.get_position()
-        axis_z[2] = -np.linalg.norm(axis_z[:2])*np.tan(np.deg2rad(20))
+        pour_angle = np.random.uniform(20, 40)
+        axis_z[2] = -np.linalg.norm(axis_z[:2])*np.tan(np.deg2rad(pour_angle))
         axis_z = axis_z / np.linalg.norm(axis_z)
         obj_goal_pose_set[:, :3, 2] = axis_z
         tmp = np.cross([1, 0, 1], axis_z)

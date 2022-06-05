@@ -204,6 +204,7 @@ class T0_ObtainControl(object):
         if self.try_times == -1:
             self.try_times = len(sorted_grasp_pose)
         grasp_index_step = len(sorted_grasp_pose)//self.try_times // 2
+        grasp_index_step = max(1, grasp_index_step)
         while trial < self.try_times and grasp_pose_idx < len(sorted_grasp_pose):
             # print('trial:', trial, 'grasp idx:', grasp_pose_idx)
             success = False
