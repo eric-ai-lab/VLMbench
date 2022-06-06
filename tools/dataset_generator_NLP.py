@@ -18,6 +18,7 @@ from PIL import Image
 from amsolver.backend import utils
 from amsolver.backend.const import *
 import numpy as np
+from pathlib import Path
 
 from absl import app
 from absl import flags
@@ -25,20 +26,28 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '/home/kz-lab/Documents/research/dataset/VLMbench/val/unseen',
+                    '/data1/zhengkz/rlbench_data/train',
                     'Where to save the demos.')
-flags.DEFINE_list('tasks', ['pick_cube_color'],
+flags.DEFINE_list('tasks', [
+                            'drop_pen_color', 'drop_pen_relative', 'drop_pen_size',
+                            'wipe_table_color', 'wipe_table_relative', 'wipe_table_shape', 'wipe_table_size', 'wipe_table_direction',
+                            'pour_demo_color', 'pour_demo_relative', 'pour_demo_size',
+                            'pick_cube_color', 'pick_cube_relative', 'pick_cube_shape', 'pick_cube_size',
+                            'stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size',
+                            'place_into_shape_sorter_color', 'place_into_shape_sorter_shape', 'place_into_shape_sorter_relative',
+                            'open_door', 'open_drawer', 'open_drawer_cabinet'
+                            ],
                   'The tasks to collect. If empty, all tasks are collected.')
-flags.DEFINE_list('image_size', [224, 224],
+flags.DEFINE_list('image_size', [360, 360],
                   'The size of the images tp save.')
 flags.DEFINE_enum('renderer',  'opengl', ['opengl', 'opengl3'],
                   'The renderer to use. opengl does not include shadows, '
                   'but is faster.')
 flags.DEFINE_integer('processes', 4,
                      'The number of parallel processes during collection.')
-flags.DEFINE_integer('episodes_per_task', 5,
+flags.DEFINE_integer('episodes_per_task', 20,
                      'The number of episodes to collect per task.')
-flags.DEFINE_integer('variations', 1,
+flags.DEFINE_integer('variations', -1,
                      'Number of variations to collect per task. -1 for all.')
 flags.DEFINE_bool('save_configs', True,
                      'whether also save the config for replay.')
@@ -254,8 +263,8 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
 
         task_env = amsolver_env.get_task(t)
         task_env.set_variation(my_variation_count)
-        obs, descriptions = task_env.reset()
-        print(obs)
+        # obs, descriptions = task_env.reset()
+        # print(obs)
 
         variation_path = os.path.join(
             FLAGS.save_path, task_env.get_name(),
@@ -263,18 +272,18 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
 
         check_and_make(variation_path)
 
-        with open(os.path.join(
-                variation_path, VARIATION_DESCRIPTIONS), 'wb') as f:
-            pickle.dump(descriptions, f)
+        # with open(os.path.join(
+        #         variation_path, VARIATION_DESCRIPTIONS), 'wb') as f:
+        #     pickle.dump(descriptions, f)
 
-        with open(os.path.join(
-                variation_path, 'high_level_descriptions.txt'), 'w') as f:
-            for item in obs:
-                f.write(item+"\n")
+        # with open(os.path.join(
+        #         variation_path, 'high_level_descriptions.txt'), 'w') as f:
+        #     for item in obs:
+        #         f.write(item+"\n")
 
         episodes_path = os.path.join(variation_path, EPISODES_FOLDER)
         check_and_make(episodes_path)
-        current_episodes = os.listdir(episodes_path)
+        current_episodes = list(Path(episodes_path).rglob("low_dim*"))
 
         fails_path = os.path.join(variation_path, 'fail_cases')
         check_and_make(fails_path)
