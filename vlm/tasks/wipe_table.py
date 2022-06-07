@@ -74,7 +74,7 @@ class WipeTable(Task):
                 waypoints = GraspTask.get_path(try_ik_sampling=True)
             if waypoints is not None:
                 self.temporary_waypoints += waypoints
-            self.robot.reset()
+            self.reset_robot()
             self.pyrep.set_configuration_tree(init_states)
             try_init_episode_times -= 1
         self._place_dirt(target)

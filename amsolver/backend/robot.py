@@ -12,6 +12,8 @@ class Robot(object):
         self.gripper = gripper
         self._start_arm_joint_pos = arm.get_joint_positions()
         self._starting_gripper_joint_pos = gripper.get_joint_positions()
+        self._initial_robot_state = (arm.get_configuration_tree(),
+                                     gripper.get_configuration_tree())
     
     def reset(self):
         self.gripper.release()

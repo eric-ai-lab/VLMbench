@@ -64,10 +64,10 @@ class StackCubes(Task):
                 task_sequence.append(MoveTask)
             for i in range(-1, -len(task_sequence), -1):
                 task_sequence[i-1].next_task_fuc = task_sequence[i].get_path
-            waypoints = task_sequence[0].get_path(try_ik_sampling=False, ignore_collisions=True)
+            waypoints = task_sequence[0].get_path(try_ik_sampling=False, ignore_collisions=False)
             if waypoints is not None:
                 self.temporary_waypoints += waypoints
-            self.robot.reset()
+            self.reset_robot()
             self.pyrep.set_configuration_tree(init_states)
             try_times -= 1
         self.register_success_conditions(conditions)
@@ -92,7 +92,8 @@ class StackCubes(Task):
             self.shape_lib[selected_obj] = []
             for i in range(self.model_num):
                 cube = VLM_Object(self.pyrep, model_path, i)
-                scale_factor = np.random.uniform(1.0, 1.25)
+                # scale_factor = np.random.uniform(1.0, 1.25)
+                scale_factor = 1.5
                 relative_factor = scale_object(cube, scale_factor)
                 if abs(relative_factor-1)>1e-2:
                     local_grasp_pose = cube.manipulated_part.local_grasp
@@ -101,7 +102,8 @@ class StackCubes(Task):
                 # cube.set_model(False)
                 cube.set_parent(self.taks_base)
                 cube_bbox = cube.get_bounding_box()
-                x, y = cube_bbox[1]-cube_bbox[0]+0.02,  cube_bbox[3]-cube_bbox[2]+0.02
+                x, y = cube_bbox[1]-cube_bbox[0],  cube_bbox[3]-cube_bbox[2]
+                x, y = x*1.2, y*1.2
                 cube_target = Shape.create(PrimitiveShape.CUBOID, [x,y,0.02], respondable=False, static=True, renderable=False)
                 # cube_target.set_parent(self.taks_base)
                 cube_target._is_plane = True

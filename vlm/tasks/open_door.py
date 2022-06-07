@@ -57,7 +57,7 @@ class OpenDoor(Task):
             if waypoints is not None:
                 self.temporary_waypoints += waypoints
             try_times += 1
-            self.robot.reset()
+            self.reset_robot()
             self.pyrep.set_configuration_tree(init_states)
             self.pyrep.step()
             for i,waypoint in enumerate(self.temporary_waypoints):

@@ -68,7 +68,7 @@ class PourDemo(Task):
                 waypoints = GraspTask0.get_path(try_ik_sampling=False)
             if waypoints is not None:
                 self.temporary_waypoints += waypoints
-            self.robot.reset()
+            self.reset_robot()
             self.pyrep.set_configuration_tree(init_states)
             self.pyrep.step()
             try_times-=1

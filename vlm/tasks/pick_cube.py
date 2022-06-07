@@ -52,7 +52,7 @@ class PickCube(Task):
                 waypoints = GraspTask0.get_path(try_ik_sampling=True)
             if waypoints is not None:
                 self.temporary_waypoints += waypoints
-            self.robot.reset()
+            self.reset_robot()
             self.pyrep.set_configuration_tree(init_states)
             try_times+= 1
         for i,waypoint in enumerate(self.temporary_waypoints):

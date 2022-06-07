@@ -469,6 +469,13 @@ class Task(object):
                 'Expected to be resetting %d objects, but there were %d.' %
                 (state[1], len(objs)))
         self.pyrep.set_configuration_tree(state[0])
+    
+    def reset_robot(self):
+        arm, gripper = self.robot._initial_robot_state
+        self.pyrep.set_configuration_tree(arm)
+        self.pyrep.set_configuration_tree(gripper)
+        self.robot.gripper.release()
+        self.robot.reset()
 
     #####################
     # Private functions #

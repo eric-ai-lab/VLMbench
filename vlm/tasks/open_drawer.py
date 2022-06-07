@@ -55,7 +55,7 @@ class OpenDrawer(Task):
             if waypoints is not None:
                 self.temporary_waypoints += waypoints
             try_times += 1
-            self.robot.reset()
+            self.reset_robot()
             self.pyrep.set_configuration_tree(init_states)
             self.pyrep.step()
             # print(f"Have tried {try_times} times for open drawer.")
