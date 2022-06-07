@@ -48,7 +48,7 @@ class OpenDoor(Task):
             door_target.set_target(self.door.parts[1])
             door_task = T2_MoveObjectConstraints(self.robot, self.pyrep, door_target, self.task_base, fail_times=2)
             post_grasp_task = door_task
-            grasp_task = T0_ObtainControl(self.robot, self.pyrep, self.door.manipulated_part, self.task_base, try_times=100,
+            grasp_task = T0_ObtainControl(self.robot, self.pyrep, self.door.manipulated_part, self.task_base, try_times=20,
                     need_post_grasp=False, grasp_sort_key="horizontal", next_task_fuc=post_grasp_task.get_path_with_constraints)
             if try_times>50:
                 waypoints = grasp_task.get_path(try_ik_sampling=True, ignore_collisions=self._ignore_collisions)
@@ -115,7 +115,7 @@ class OpenDoor(Task):
             if "open" in goal_state:
                 goal_distance = max_angle*np.random.uniform(0.8, 1.0)
             else:
-                goal_distance = 0
+                goal_distance = np.random.uniform(joint_range[0], joint_range[0]+joint_range[1]*0.1)
         self.register_success_conditions([JointCondition(self.door_joint, np.deg2rad(detect_distance), np.deg2rad(detect_bound))])
         return goal_distance, goal_state
 
