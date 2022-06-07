@@ -26,7 +26,7 @@ class PickCubeSize(PickCube):
             large_obj = self.object_list[0]
         small_obj.manipulated_part.descriptions = "the {} object".format("smaller")
         large_obj.manipulated_part.descriptions = "the {} object".format("larger")
-        for obj, scale_factor in zip([small_obj, large_obj],[np.random.uniform(0.6, 0.9), np.random.uniform(1.1, 1.4)]):
+        for obj, scale_factor in zip([small_obj, large_obj],[np.random.uniform(0.6, 0.9), np.random.uniform(1.1, 1.2)]):
             relative_factor = scale_object(obj, scale_factor)
             if abs(relative_factor-1)>1e-2:
                 local_grasp_pose = obj.manipulated_part.local_grasp
@@ -41,7 +41,7 @@ class PickCubeSize(PickCube):
             large_target = self.target_spaces[0]
         small_target.target_space_descriptions = "the smaller container"
         large_target.target_space_descriptions = "the larger container"
-        for target, scale_factor in zip([small_target, large_target],[np.random.uniform(0.75, 0.9), np.random.uniform(1.1, 1.5)]):
+        for target, scale_factor in zip([small_target, large_target],[np.random.uniform(0.8, 0.9), np.random.uniform(1.1, 1.25)]):
             relative_factor = scale_object(Shape(target.focus_obj_id), scale_factor)
 
         color_index = np.random.choice(len(colors), len(self.object_list), replace=True)
