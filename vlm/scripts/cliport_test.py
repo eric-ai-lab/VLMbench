@@ -1,3 +1,5 @@
+import argparse
+from distutils.util import strtobool
 from pathlib import Path
 import os
 import random
@@ -76,14 +78,14 @@ class CliportAgent(object):
             self.agent = DepthLangAgent_6Dof(name='agent',device=device, cfg=cfg).to(device)
         elif model_name == 'blindlang_6dof':
             self.agent = BlindLangAgent_6Dof(name='agent',device=device, cfg=cfg).to(device)
-
+        self.model_name = model_name
         if checkpoint is not None:
             state_dict = torch.load(checkpoint,device)
             self.agent.load_state_dict(state_dict['state_dict'])
         self.agent.eval()
 
     @staticmethod
-    def generate_action_list(waypoints_info):
+    def generate_action_list(waypoints_info, args):
         all_waypoints = []
         i=0
         while True:
@@ -111,19 +113,19 @@ class CliportAgent(object):
                     attention_id = waypoint_info["target_obj"]
                     related_rotation = False
                 else:
-                    related_rotation = True
+                    related_rotation = args.relative
                 if focus_waypoint_info["gripper_control"] is not None:
                     gripper_control = focus_waypoint_info["gripper_control"][1]
                 gt_pose = focus_waypoint_info['pose'][0]
                 point_list.append(focus_wp)
                 # if "grasp" in waypoint_type:
                 #     continue
-                step_list.append([focus_wp, i, attention_id, gripper_control, focus_waypoint_info["waypoint_type"], related_rotation, gt_pose])
+                step_list.append([focus_wp, focus_waypoint_info['low_level_descriptions'], attention_id, gripper_control, focus_waypoint_info["waypoint_type"], related_rotation, gt_pose])
         return step_list
     
     def act(self, step_list, step_id, obs, lang, use_gt_xy=False,use_gt_z=False, use_gt_theta=False, use_gt_roll_pitch=False):
         current_waypoint,_, attention_id, gripper_control, waypoint_type, related_rotation, gt_pose  = step_list[step_id]
-        if model_name =="transporter_6dof":
+        if self.model_name =="transporter_6dof":
             lang = f"Step {num2words(step_id)}."
         with torch.no_grad():
             inp_img, lang_goal, p0, output_dict = self.agent.act(obs, [lang], bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, 1.2]]), pixel_size=5.625e-3/2)
@@ -176,7 +178,22 @@ def set_seed(seed, torch=False):
         import torch
         torch.manual_seed(seed)
 
+def add_argments():
+    parser = argparse.ArgumentParser(description='')
+    #dataset
+    parser.add_argument('--data_folder', type=str, default="/data1/zhengkz/rlbench_data/test/seen")
+    parser.add_argument('--checkpoints_folder', type=str, default="/data1/zhengkz/new_weights")
+    parser.add_argument('--model_name', type=str, default="cliport_6dof")
+    parser.add_argument('--gpu', type=int, default=7)
+    parser.add_argument('--task', type=str, default=None)
+    parser.add_argument('--relative', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--add_low_lang', type=lambda x:bool(strtobool(x)), default=False)
+    args = parser.parse_args()
+    return args
+
 if __name__=="__main__":
+    args = add_argments()
     set_seed(0)
     obs_config = ObservationConfig()
     obs_config.set_all(True)
@@ -208,24 +225,38 @@ if __name__=="__main__":
     need_test_numbers = 100
     replay_test = False
     
-    renew_obs = False
+    renew_obs = args.renew_obs
     need_post_grap = True
     need_pre_move = False
-    # task_files = ['drop_pen_color', 'drop_pen_relative', 'drop_pen_size']
-    # task_files = ['pick_cube_shape', 'pick_cube_relative', 'pick_cube_color', 'pick_cube_size']
-    task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
-    # task_files = ['place_into_shape_sorter_color', 'place_into_shape_sorter_relative', 'place_into_shape_sorter_shape']
-    # task_files = ['wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
-    # task_files = ['pour_demo_color', 'pour_demo_relative', 'pour_demo_size']
-    # task_files = ['drop_pen_color']
-    # task_files = ['open_drawer']
-    # task_files = ['open_door']
+    if args.task == 'drop':
+        task_files = ['drop_pen_color', 'drop_pen_relative', 'drop_pen_size']
+    elif args.task == 'pick':
+        task_files = ['pick_cube_shape', 'pick_cube_relative', 'pick_cube_color', 'pick_cube_size']
+    elif args.task == 'stack':
+        task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
+    elif args.task == 'place':
+        task_files = ['place_into_shape_sorter_color', 'place_into_shape_sorter_relative', 'place_into_shape_sorter_shape']
+    elif args.task == 'wipe':
+        task_files = ['wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
+    elif args.task == 'pour':
+        task_files = ['pour_demo_color', 'pour_demo_relative', 'pour_demo_size']
+    elif args.task == 'drawer':
+        task_files = ['open_drawer', 'open_drawer_cabinet']
+    elif args.task == 'door':
+        task_files = ['open_door']
     train_tasks = [task_file_to_task_class(t, parent_folder = 'vlm') for t in task_files]
-    data_folder = Path("/data1/zhengkz/rlbench_data/train")
+    data_folder = Path(args.data_folder)
     if not replay_test:
-        checkpoint = "/data1/zhengkz/new_weights/conv_checkpoint_cliport_6dof_stack_best.pth"
-        model_name = "cliport_6dof"
-        agent = CliportAgent(model_name, device_id=7,z_roll_pitch=True, checkpoint=checkpoint)
+        checkpoint = args.checkpoints_folder + f"/conv_checkpoint_{args.model_name}_{args.task}"
+        if args.relative:
+            checkpoint += '_relative'
+        if args.renew_obs:
+            checkpoint += '_renew'
+        if args.add_low_lang:
+            checkpoint += '_low'
+        checkpoint += '_best.pth'
+        # checkpoint = "/data1/zhengkz/new_weights/conv_checkpoint_cliport_6dof_stack_best_norenew_low.pth"
+        agent = CliportAgent(args.model_name, device_id=args.gpu,z_roll_pitch=True, checkpoint=checkpoint)
     else:
         agent = ReplayAgent()
     for i, task_to_train in enumerate(train_tasks):
@@ -246,7 +277,7 @@ if __name__=="__main__":
             if high_descriptions[-1]!=".":
                 high_descriptions+="."
             print(high_descriptions)
-            step_list = CliportAgent.generate_action_list(waypoints_info)
+            step_list = CliportAgent.generate_action_list(waypoints_info, args)
             action_list = []
             collision_checking_list = []
             """
@@ -257,10 +288,9 @@ if __name__=="__main__":
             """
             for i, sub_step in enumerate(step_list):
                 lang = high_descriptions+f" Step {num2words(i)}."
-                if i==0:
-                    action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=True, use_gt_z= True, use_gt_theta= True, use_gt_roll_pitch=True)
-                else:
-                    action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=False, use_gt_z= False, use_gt_theta= False, use_gt_roll_pitch=False)
+                if args.add_low_lang:
+                    lang += sub_step[1]
+                action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=False, use_gt_z= False, use_gt_theta= False, use_gt_roll_pitch=False)
                 if "grasp" in action_type:
                     pre_action = action.copy()
                     pose = R.from_quat(action[3:7]).as_matrix()

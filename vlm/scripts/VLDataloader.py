@@ -18,7 +18,7 @@ from num2words import num2words
 class VLM_dataset(Dataset):
     def __init__(self, root, setd, img_size=(256, 256), 
                     unused_camera_list = ['left_shoulder', 'right_shoulder', 'overhead','wrist'], preprocess = True, 
-                    use_fail_cases = True, sample_numbers = None, train_tasks = None, random_sample = False):
+                    use_fail_cases = True, sample_numbers = None, train_tasks = None, random_sample = False, args=None):
         self.root = root
         self.setd = setd
         self.dataset_path = Path(os.path.join(self.root, self.setd))
@@ -64,6 +64,14 @@ class VLM_dataset(Dataset):
             self.obs_config.wrist_camera.set_all(False)
         if 'front' in unused_camera_list:
             self.obs_config.front_camera.set_all(False)
+        
+        self.relative = False
+        self.renew_obs = False
+        self.add_low_lang = False
+        if args is not None:
+            self.relative = args.relative
+            self.renew_obs = args.renew_obs
+            self.add_low_lang = args.add_low_lang
 
     def read_lists(self):
         tasks_list_path = self.dataset_path / '{}_list.pkl'.format(self.setd)
@@ -188,7 +196,7 @@ class VLM_dataset(Dataset):
 
     def get_cliport_gt(self, data, languages, episode):
         bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, 1.2]])
-        pixel_size = 5.625e-3
+        pixel_size = 5.625e-3 / 2
         target_obj = None
         cmaps, hmaps = [], []
         high_l = np.random.choice(languages, 1)[0]
@@ -211,16 +219,22 @@ class VLM_dataset(Dataset):
             if focus_wp not in point_list:
                 focus_info = data[0].object_informations[focus_wp]
                 focus_type = focus_info['waypoint_type']
+                # attention_id = waypoint_info["target_obj"]
                 if "grasp" in focus_type:
                     attention_id = waypoint_info["target_obj"]
                     step_img_id = i
                     related_rotation = False
                 else:
-                    related_rotation = False
+                    related_rotation = self.relative
                 point_list.append(focus_wp)
-                step_list.append([focus_wp, step_img_id, attention_id, related_rotation])
+                if self.renew_obs:
+                    step_list.append([focus_wp, i, attention_id, related_rotation])
+                else:
+                    step_list.append([focus_wp, step_img_id, attention_id, related_rotation])
         
         for i, step in enumerate(step_list):
+            # if i == 0:
+            #     continue
             current_waypoint, index, attention_id, related_rotation = step
             obs = data[index]
             waypoint_info = obs.object_informations[current_waypoint]
@@ -245,7 +259,10 @@ class VLM_dataset(Dataset):
             cmap, hmap = get_fused_heightmap(colors, pcds, bounds, pixel_size)
             cmaps.append(cmap)
             hmaps.append(hmap)
-            language_instructions.append(high_l+f" Step {num2words(i)}.")
+            lang = high_l+f" Step {num2words(i)}."
+            if self.add_low_lang:
+                lang += waypoint_info['low_level_descriptions']
+            language_instructions.append(lang)
             # language_instructions.append(obs.object_informations[obs.current_waypoint_name]['low_level_descriptions'])
             target_point = waypoint_info["pose"][0]
             if related_rotation:
@@ -255,7 +272,8 @@ class VLM_dataset(Dataset):
                 delta_r = prev_rot.inv()*current_rot
                 target_point[3:] = delta_r.as_quat()
             target_points.append(target_point)
-            attention_point = obs.object_informations[target_obj]["pose"]
+            # target_obj = "waypoint1"
+            attention_point = obs.object_informations[target_obj]["pose"]#[0]
             attention_points.append(attention_point)
         cmaps = np.stack(cmaps, axis=0)
         hmaps = np.tile((np.stack(hmaps, axis=0))[..., None], (1,1,1,3))

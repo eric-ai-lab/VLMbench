@@ -12,6 +12,7 @@ import torch.distributed as dist
 import torch.backends.cudnn as cudnn
 import argparse
 import warnings
+from distutils.util import strtobool
 
 import sys
 from os.path import join, dirname, abspath, isfile
@@ -63,7 +64,7 @@ def collate_fn(batch):
     return output_batch
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth'):
-    torch.save(state, filename)
+    torch.save(state, filename+'.pth')
     if is_best:
         torch.save(state, 'model_best.pth')
 
@@ -189,6 +190,7 @@ def main_worker(gpu, ngpus_per_node, args):
     else:
         model.cuda(args.gpu)
     parameters = [p for name, p in model.named_parameters() if p.requires_grad]
+    # parameters = model.parameters()
     optimizer = torch.optim.Adam(parameters, args.lr)
 
     if args.resume:
@@ -205,10 +207,10 @@ def main_worker(gpu, ngpus_per_node, args):
                 model.module.load_state_dict(checkpoint['state_dict'])
             else:
                 model.load_state_dict(checkpoint['state_dict'])
-            try:
-                optimizer.load_state_dict(checkpoint['optimizer'])
-            except:
-                pass
+            # try:
+            #     optimizer.load_state_dict(checkpoint['optimizer'])
+            # except:
+            #     pass
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(args.resume, checkpoint['epoch']))
             del checkpoint
@@ -218,9 +220,9 @@ def main_worker(gpu, ngpus_per_node, args):
     
     cudnn.benchmark = True
     train_dataset = VLM_dataset(args.data_dir, 'train', img_size=args.img_size, unused_camera_list = args.unused_camera_list, preprocess = args.preprocess, 
-                    use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks)
+                    use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks, args=args)
     val_dataset = VLM_dataset(args.data_dir, 'valid', img_size=args.img_size, unused_camera_list = args.unused_camera_list, preprocess = args.preprocess, 
-                    use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks)
+                    use_fail_cases = args.use_fail_cases, sample_numbers = args.sample_numbers, train_tasks=args.train_tasks, args=args)
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
@@ -275,23 +277,31 @@ def main_worker(gpu, ngpus_per_node, args):
             train_tasks = "all"
             if args.train_tasks is not None:
                 train_tasks = args.train_tasks[0]
+            save_name = args.checkpoint_path+'/conv_checkpoint_{}_{}'.format(args.baseline_mode, train_tasks)
+            if args.relative:
+                save_name_best += '_relative'
+            if args.renew_obs:
+                save_name_best += '_renew'
+            if args.add_low_lang:
+                save_name_best += '_low'
             if val_loss<=best_val_loss:
                 best_val_loss = val_loss
+                save_name_best = save_name + '_best'
                 save_checkpoint({
                     'epoch': epoch + 1,
                     'arch': args.baseline_mode,
                     'state_dict': model.module.state_dict() if args.distributed else model.state_dict(),
-                    'optimizer' : optimizer.state_dict(),
+                    # 'optimizer' : optimizer.state_dict(),
                     'train_tasks': args.train_tasks
-                }, is_best=False, filename=args.checkpoint_path+'/conv_checkpoint_{}_{}_best.pth'.format(args.baseline_mode, train_tasks))
+                }, is_best=False, filename=save_name_best)
             if (epoch + 1)%5==0:
                 save_checkpoint({
                         'epoch': epoch + 1,
                         'arch': args.baseline_mode,
                         'state_dict': model.module.state_dict() if args.distributed else model.state_dict(),
-                        'optimizer' : optimizer.state_dict(),
+                        # 'optimizer' : optimizer.state_dict(),
                         'train_tasks': args.train_tasks
-                    }, is_best=False, filename=args.checkpoint_path+'/conv_checkpoint_{}_{}_{:04d}.pth'.format(args.baseline_mode, train_tasks, epoch))
+                    }, is_best=False, filename=save_name)
     if args.wandb_entity is not None and args.rank==0:
         wandb.finish()
 
@@ -332,7 +342,7 @@ def train(data_loader, model, optimizer, scheduler, epoch, losses, args, timer, 
         inp = {'img':img, 'lang_goal': language_instructions,
             'p0':p0, 'p0_z':p0_z, 'p0_rotation':p0_rotation,
             'p1':p1, 'p1_z':p1_z, 'p1_rotation':p1_rotation}
-        loss_dict = model(inp, epoch)
+        loss_dict = model(inp)
 
         if losses == {}:
             for loss_term in loss_dict:
@@ -447,7 +457,9 @@ if __name__=="__main__":
     parser.add_argument('--sample_numbers', type=int, default=0, help="downsample from total demonstrations")
     parser.add_argument('--pin_memory', action='store_true', help="do not use if the RAM is small")
     parser.add_argument('--train_tasks', nargs='+', type=str, default = None)
-
+    parser.add_argument('--relative', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--add_low_lang', type=lambda x:bool(strtobool(x)), default=False)
     #traning
     parser.add_argument('--start_epoch', default=0, type=int)
     parser.add_argument('--epochs', default=10, type=int,
