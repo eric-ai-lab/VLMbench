@@ -43,6 +43,15 @@ class Recorder(object):
         video.release()
         self._snaps = []
 
+class ReplayAgent(object):
+
+     def act(self, step_list, step_id, obs, lang, use_gt_xy=False,use_gt_z=False, use_gt_theta=False, use_gt_roll_pitch=False):
+        current_waypoint,_, attention_id, gripper_control, waypoint_type, related_rotation, gt_pose  = step_list[step_id]
+        action = np.zeros(8)
+        action[:7] = gt_pose
+        action[7] = gripper_control
+        return action, waypoint_type
+
 class CliportAgent(object):
     def __init__(self, model_name, device_id=0, z_roll_pitch=True, checkpoint=None) -> None:
         cfg = {
@@ -72,8 +81,9 @@ class CliportAgent(object):
             state_dict = torch.load(checkpoint,device)
             self.agent.load_state_dict(state_dict['state_dict'])
         self.agent.eval()
-    
-    def generate_action_list(self, waypoints_info):
+
+    @staticmethod
+    def generate_action_list(waypoints_info):
         all_waypoints = []
         i=0
         while True:
@@ -101,11 +111,13 @@ class CliportAgent(object):
                     attention_id = waypoint_info["target_obj"]
                     related_rotation = False
                 else:
-                    related_rotation = False
+                    related_rotation = True
                 if focus_waypoint_info["gripper_control"] is not None:
                     gripper_control = focus_waypoint_info["gripper_control"][1]
                 gt_pose = focus_waypoint_info['pose'][0]
                 point_list.append(focus_wp)
+                # if "grasp" in waypoint_type:
+                #     continue
                 step_list.append([focus_wp, i, attention_id, gripper_control, focus_waypoint_info["waypoint_type"], related_rotation, gt_pose])
         return step_list
     
@@ -114,7 +126,7 @@ class CliportAgent(object):
         if model_name =="transporter_6dof":
             lang = f"Step {num2words(step_id)}."
         with torch.no_grad():
-            inp_img, lang_goal, p0, output_dict = self.agent.act(obs, [lang], bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, 1.2]]))
+            inp_img, lang_goal, p0, output_dict = self.agent.act(obs, [lang], bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, 1.2]]), pixel_size=5.625e-3/2)
         action = np.zeros(8)
         action[:7] = gt_pose
         if not use_gt_xy:
@@ -123,8 +135,7 @@ class CliportAgent(object):
             action[2] = output_dict['place_z']
         action[7] = gripper_control
         if related_rotation:
-            prev_pose = step_list[step_id-1][-1]
-            prev_pose = R.from_quat(prev_pose[3:])
+            prev_pose = R.from_quat(self.prev_pose[3:])
             current_pose = R.from_quat(gt_pose[3:])
             rotation = (prev_pose.inv()*current_pose).as_euler('zyx')
             # rotation[rotation<0]+=2*np.pi
@@ -144,6 +155,7 @@ class CliportAgent(object):
                 rotation[1] = output_dict['pitch']
                 rotation[2] = output_dict['roll']
             action[3:7] = R.from_euler("zyx",rotation).as_quat()
+        self.prev_pose = action[:7]
         return action, waypoint_type
 
 
@@ -168,7 +180,7 @@ if __name__=="__main__":
     set_seed(0)
     obs_config = ObservationConfig()
     obs_config.set_all(True)
-    img_size=(224,224)
+    img_size=(360,360)
     obs_config.right_shoulder_camera.image_size = img_size
     obs_config.left_shoulder_camera.image_size = img_size
     obs_config.overhead_camera.image_size = img_size
@@ -194,13 +206,14 @@ if __name__=="__main__":
     # recorder = Recorder()
     recorder = None
     need_test_numbers = 100
+    replay_test = False
     
     renew_obs = False
     need_post_grap = True
     need_pre_move = False
     # task_files = ['drop_pen_color', 'drop_pen_relative', 'drop_pen_size']
-    task_files = ['pick_cube_shape', 'pick_cube_relative', 'pick_cube_color', 'pick_cube_size']
-    # task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
+    # task_files = ['pick_cube_shape', 'pick_cube_relative', 'pick_cube_color', 'pick_cube_size']
+    task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
     # task_files = ['place_into_shape_sorter_color', 'place_into_shape_sorter_relative', 'place_into_shape_sorter_shape']
     # task_files = ['wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
     # task_files = ['pour_demo_color', 'pour_demo_relative', 'pour_demo_size']
@@ -208,10 +221,13 @@ if __name__=="__main__":
     # task_files = ['open_drawer']
     # task_files = ['open_door']
     train_tasks = [task_file_to_task_class(t, parent_folder = 'vlm') for t in task_files]
-    data_folder = Path("/data1/zhengkz/rlbench_new/test/seen")
-    checkpoint = "/data1/zhengkz/new_weights/conv_checkpoint_cliport_6dof_pick_best.pth"
-    model_name = "cliport_6dof"
-    agent = CliportAgent(model_name, device_id=7,z_roll_pitch=True, checkpoint=checkpoint)
+    data_folder = Path("/data1/zhengkz/rlbench_data/train")
+    if not replay_test:
+        checkpoint = "/data1/zhengkz/new_weights/conv_checkpoint_cliport_6dof_stack_best.pth"
+        model_name = "cliport_6dof"
+        agent = CliportAgent(model_name, device_id=7,z_roll_pitch=True, checkpoint=checkpoint)
+    else:
+        agent = ReplayAgent()
     for i, task_to_train in enumerate(train_tasks):
         e_path = load_test_config(data_folder, task_files[i])
         success_times = 0
@@ -230,7 +246,7 @@ if __name__=="__main__":
             if high_descriptions[-1]!=".":
                 high_descriptions+="."
             print(high_descriptions)
-            step_list = agent.generate_action_list(waypoints_info)
+            step_list = CliportAgent.generate_action_list(waypoints_info)
             action_list = []
             collision_checking_list = []
             """
@@ -241,7 +257,10 @@ if __name__=="__main__":
             """
             for i, sub_step in enumerate(step_list):
                 lang = high_descriptions+f" Step {num2words(i)}."
-                action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=False, use_gt_z= False, use_gt_theta= False, use_gt_roll_pitch=False)
+                if i==0:
+                    action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=True, use_gt_z= True, use_gt_theta= True, use_gt_roll_pitch=True)
+                else:
+                    action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=False, use_gt_z= False, use_gt_theta= False, use_gt_roll_pitch=False)
                 if "grasp" in action_type:
                     pre_action = action.copy()
                     pose = R.from_quat(action[3:7]).as_matrix()
@@ -277,9 +296,21 @@ if __name__=="__main__":
                         print(e)
                         break
             if not renew_obs and len(action_list):
+                # pre_grasp = waypoints_info['waypoint0']['pose'][0]
+                # grasp = waypoints_info['waypoint1']['pose'][0]
+                # post_grasp = waypoints_info['waypoint2']['pose'][0]
+                # action0 = np.zeros(8)
+                # action1 = np.zeros(8)
+                # action2 = np.zeros(8)
+                # action0[:7] = pre_grasp
+                # action0[7] = 1
+                # action1[:7] = grasp
+                # action2[:7] = post_grasp
+                # action_list = [action0, action1, action2] + action_list
+                # collision_checking_list = [True, False, False] + collision_checking_list
                 try:
                     for action, collision_checking in zip(action_list,collision_checking_list):
-                        obs, reward, terminate = task.step(action, collision_checking, recorder = recorder)
+                        obs, reward, terminate = task.step(action, collision_checking, recorder = recorder, use_auto_move=True)
                         if reward == 1:
                             success_times+=1
                             break

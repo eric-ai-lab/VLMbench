@@ -176,6 +176,7 @@ class TaskEnvironment(object):
 
         observations = []
         done = False
+        success_in_path = []
         if collision_checking:
             # First check if we are colliding with anything
             colliding = self._robot.arm.check_arm_collision()
@@ -211,6 +212,7 @@ class TaskEnvironment(object):
         if not done:
             path = self._path_action_get_path(
                 action, collision_checking, relative_to)
+            small_step = 0
             while not done:
                 done = path.step()
                 self._scene.step()
@@ -220,10 +222,13 @@ class TaskEnvironment(object):
                     recorder.take_snap()
                 success, terminate = self._task.success()
                 # If the task succeeds while traversing path, then break early
+                # if success:
+                #     break
                 if success:
-                    break
+                    success_in_path.append(small_step)
+                small_step += 1
 
-        return observations
+        return observations, success_in_path
 
     def step(self, action, collision_checking=None, use_auto_move=True, recorder = None) -> Tuple[Observation, int, bool]:
         # returns observation, reward, done, info
@@ -324,7 +329,7 @@ class TaskEnvironment(object):
                 collision_checking = False
             if not pass_this_step:
                 self._path_observations = []
-                self._path_observations = self._path_action(
+                self._path_observations, success_in_path = self._path_action(
                     list(arm_action), collision_checking=collision_checking, recorder=recorder)
 
         elif self._action_mode.arm == ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK:
@@ -341,7 +346,7 @@ class TaskEnvironment(object):
                 collision_checking = True
             if not pass_this_step:
                 self._path_observations = []
-                self._path_observations = self._path_action(
+                self._path_observations, success_in_path = self._path_action(
                     list(arm_action), collision_checking=collision_checking, recorder = recorder)
 
         elif self._action_mode.arm == ArmActionMode.DELTA_EE_POSE_PLAN_WORLD_FRAME:
@@ -354,7 +359,7 @@ class TaskEnvironment(object):
             qw, qx, qy, qz = list(new_rot)
             new_pose = [a_x + x, a_y + y, a_z + z] + [qx, qy, qz, qw]
             self._path_observations = []
-            self._path_observations = self._path_action(list(new_pose))
+            self._path_observations, success_in_path = self._path_action(list(new_pose))
 
         elif self._action_mode.arm == ArmActionMode.DELTA_EE_POSE_WORLD_FRAME:
 
@@ -379,7 +384,7 @@ class TaskEnvironment(object):
 
             self._assert_action_space(arm_action, (7,))
             self._path_observations = []
-            self._path_observations = self._path_action(
+            self._path_observations, success_in_path = self._path_action(
                 list(arm_action), relative_to=self._robot.arm.get_tip())
 
         else:
@@ -409,6 +414,8 @@ class TaskEnvironment(object):
         success, terminate = self._task.success()
         # task_reward = self._task.reward(steps)
         # reward = float(success) if task_reward is None else task_reward
+        if len(success_in_path) > 0:
+            success = 1.0
         reward = float(success)
         return obs, reward, terminate
 
@@ -519,7 +526,7 @@ class TaskEnvironment(object):
     def _get_live_demos(self, amount: int,
                         callable_each_step: Callable[
                             [Observation], None] = None,
-                        max_attempts: int = _MAX_DEMO_ATTEMPTS) -> List[Demo]:
+                        max_attempts: int = _MAX_DEMO_ATTEMPTS, record=True) -> List[Demo]:
         demos = []
         success_all = []
         for i in range(amount):
@@ -529,7 +536,10 @@ class TaskEnvironment(object):
                 self.reset()
                 try:
                     demo, success = self._scene.get_demo(
-                        callable_each_step=callable_each_step)
+                        record = record, callable_each_step=callable_each_step)
+                    if not record and not success:
+                        attempts -= 1
+                        continue
                     demo.random_seed = random_seed
                     demos.append(demo)
                     success_all.append(success)
@@ -551,9 +561,11 @@ class TaskEnvironment(object):
         try:
             ctr_loop = self._robot.arm.joints[0].is_control_loop_enabled()
             self._robot.arm.set_control_loop_enabled(True)
-            desc = self._scene.init_episode(
-                self._variation_number, max_attempts=_MAX_RESET_ATTEMPTS,
-                randomly_place=not self._static_positions)
+            demos, success_all = self._get_live_demos(amount=1,record=False)
+            desc = demos[0].high_level_instructions
+            # desc = self._scene.init_episode(
+            #     self._variation_number, max_attempts=_MAX_RESET_ATTEMPTS,
+            #     randomly_place=not self._static_positions)
             self._robot.arm.set_control_loop_enabled(ctr_loop)
         except (BoundaryError, WaypointError) as e:
             raise TaskEnvironmentError(

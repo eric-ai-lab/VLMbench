@@ -53,7 +53,7 @@ class StackCubes(Task):
                 conditions.append(DetectedCondition(above_cube.manipulated_part, self.success_sensor))
                 target_space_mesh = above_cube.target
                 below_obj_zmax = below_cube.get_bounding_box()[-1]
-                target_space_mesh.set_position([0,0,below_obj_zmax+0.001], relative_to = below_cube)
+                target_space_mesh.set_position([0,0,below_obj_zmax+0.005], relative_to = below_cube)
                 # target_space_mesh.set_parent(below_cube)
                 target_space = TargetSpace(SpawnBoundary([target_space_mesh]), self.success_sensor,
                                         (0,0,-3.14), (0,0,3.14), below_cube.manipulated_part.descriptions, below_cube.manipulated_part.visual)
@@ -99,12 +99,13 @@ class StackCubes(Task):
                     local_grasp_pose = cube.manipulated_part.local_grasp
                     local_grasp_pose[:, :3, 3] *= relative_factor
                     cube.manipulated_part.local_grasp = local_grasp_pose
+                cube.scale_factor = scale_factor
                 # cube.set_model(False)
                 cube.set_parent(self.taks_base)
                 cube_bbox = cube.get_bounding_box()
                 x, y = cube_bbox[1]-cube_bbox[0],  cube_bbox[3]-cube_bbox[2]
                 x, y = x*1.2, y*1.2
-                cube_target = Shape.create(PrimitiveShape.CUBOID, [x,y,0.02], respondable=False, static=True, renderable=False)
+                cube_target = Shape.create(PrimitiveShape.CUBOID, [x,y,0], respondable=False, static=True, renderable=False)
                 # cube_target.set_parent(self.taks_base)
                 cube_target._is_plane = True
                 cube_target.set_transparency(0)
