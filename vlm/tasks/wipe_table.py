@@ -15,6 +15,7 @@ from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from amsolver.backend.task import Task
 from amsolver.backend.conditions import Condition
+from pyrep.backend._sim_cffi import ffi, lib
 
 DIRT_POINTS = 50
 class WipeTable(Task):
@@ -121,6 +122,7 @@ class WipeTable(Task):
             self.shape_lib[selected_obj] = []
             for i in range(self.area_num):
                 dirt_area = self.pyrep.import_model(model_path)
+                dirt_area.scale_factor = lib.simGetObjectSizeFactor(ffi.cast('int',dirt_area._handle))
                 scale_object(dirt_area, np.random.uniform(0.9, 1.1))
                 dirt_area.directional = planes[selected_obj]['directional']
                 dirt_area.set_parent(self.taks_base)

@@ -221,9 +221,6 @@ def scale_object(obj, scale_factor: float, scale_position: bool = True) -> None:
     current_scale = lib.simGetObjectSizeFactor(ffi.cast('int',obj._handle))
     if hasattr(obj, "scale_factor"):
       current_scale /= obj.scale_factor
-    else:
-      obj.scale_factor = current_scale
-      current_scale = 1.0
     relative_factor = scale_factor/current_scale
     if abs(relative_factor-1)>1e-2:
       lib.simScaleObjects(objectHandle, ffi.cast('int',1), ffi.cast('float', scale_factor/current_scale), ffi.cast('bool', scale_position))

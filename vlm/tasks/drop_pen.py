@@ -105,6 +105,7 @@ class DropPen(Task):
         target_path = self.model_dir+"container/basket1.ttm"
         for i in range(2):
             target = self.pyrep.import_model(target_path)
+            target.set_model_dynamic(False)
             target.scale_factor = lib.simGetObjectSizeFactor(ffi.cast('int',target._handle))
             target.set_parent(self.taks_base)
             for children in target.get_objects_in_tree(exclude_base=True):
