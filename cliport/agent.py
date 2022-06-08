@@ -10,7 +10,7 @@ import torch.nn as nn
 from cliport.models.streams.one_stream_attention_lang_fusion import OneStreamAttentionLangFusion
 from cliport.models.streams.one_stream_transport_lang_fusion import OneStreamTransportLangFusion
 
-import cliport.utils as utils
+import cliport.utils.utils as utils
 from cliport.models.core.attention import Attention
 from cliport.models.core.transport import Transport, Transport6Dof
 from cliport.models.streams.two_stream_attention_lang_fusion import TwoStreamAttentionLangFusion, TwoStreamAttentionLangFusionLat

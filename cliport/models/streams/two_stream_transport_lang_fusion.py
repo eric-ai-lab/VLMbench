@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import cliport.models as models
 import cliport.models.core.fusion as fusion
 from cliport.models.core.transport import Transport, Transport6Dof
-from cliport.utils import mlp
+from cliport.utils.utils import mlp
 from time import time
 
 class TwoStreamTransportLangFusion(Transport6Dof):

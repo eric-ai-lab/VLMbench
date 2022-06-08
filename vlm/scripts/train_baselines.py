@@ -279,11 +279,11 @@ def main_worker(gpu, ngpus_per_node, args):
                 train_tasks = args.train_tasks[0]
             save_name = args.checkpoint_path+'/conv_checkpoint_{}_{}'.format(args.baseline_mode, train_tasks)
             if args.relative:
-                save_name_best += '_relative'
+                save_name += '_relative'
             if args.renew_obs:
-                save_name_best += '_renew'
+                save_name += '_renew'
             if args.add_low_lang:
-                save_name_best += '_low'
+                save_name += '_low'
             if val_loss<=best_val_loss:
                 best_val_loss = val_loss
                 save_name_best = save_name + '_best'

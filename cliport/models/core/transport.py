@@ -1,11 +1,11 @@
 import numpy as np
 import cliport.models as models
-import cliport.utils as utils
+import cliport.utils.utils as utils
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from cliport.utils import mlp
+from cliport.utils.utils import mlp
 
 class Transport(nn.Module):
 

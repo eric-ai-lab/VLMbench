@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import cliport.utils as utils
+import cliport.utils.utils as utils
 from transformers import DistilBertTokenizer, DistilBertModel
 from cliport.models.core import fusion
 from cliport.models.resnet import ConvBlock, IdentityBlock

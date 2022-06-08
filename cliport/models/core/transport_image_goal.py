@@ -1,6 +1,6 @@
 import numpy as np
 import cliport.models as models
-from cliport.utils import utils
+from cliport.utils.utils import utils
 
 import torch
 import torch.nn as nn

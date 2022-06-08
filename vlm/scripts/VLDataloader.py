@@ -5,7 +5,7 @@ import torch
 import cv2
 from pathlib import Path
 import pickle
-from cliport.utils import get_fused_heightmap
+from cliport.utils.utils import get_fused_heightmap
 pickle.DEFAULT_PROTOCOL=pickle.HIGHEST_PROTOCOL
 from amsolver.observation_config import ObservationConfig
 from amsolver.utils import get_stored_demos

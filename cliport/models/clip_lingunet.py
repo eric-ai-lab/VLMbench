@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-import cliport.utils as utils
+import cliport.utils.utils as utils
 from cliport.models.resnet import IdentityBlock, ConvBlock
 from cliport.models.core.unet import Up
 from cliport.models.core import fusion

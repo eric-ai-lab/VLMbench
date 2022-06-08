@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import cliport.utils as utils
+import cliport.utils.utils as utils
 
 
 class IdentityBlock(nn.Module):
