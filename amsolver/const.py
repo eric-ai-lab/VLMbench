@@ -179,6 +179,15 @@ seen_door_list = [
         }
 ]
 
+unseen_door_list = [
+        {
+            "path": "microwave/microwave6/microwave6.ttm"
+        },
+        {
+            "path": "fridge/fridge5/fridge5.ttm"
+        },
+]
+
 seen_complex_door_list = [
         {
             "path": "door/door1/door1.ttm"

@@ -27,20 +27,20 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '/data1/zhengkz/rlbench_new/test/seen',
+                    '/home/kz-lab/Documents/research/dataset/VLMbench/test',
                     'Where to save the demos.')
-flags.DEFINE_list('tasks', ['pick_cube_color', 'pick_cube_relative', 'pick_cube_shape', 'pick_cube_size'],
+flags.DEFINE_list('tasks', ['open_door'],
                   'The tasks to collect. If empty, all tasks are collected.')
 flags.DEFINE_list('image_size', [224, 224],
                   'The size of the images tp save.')
 flags.DEFINE_enum('renderer',  'opengl', ['opengl', 'opengl3'],
                   'The renderer to use. opengl does not include shadows, '
                   'but is faster.')
-flags.DEFINE_integer('processes', 32,
+flags.DEFINE_integer('processes', 1,
                      'The number of parallel processes during collection.')
 flags.DEFINE_integer('episodes_per_task', 5,
                      'The number of episodes to collect per task.')
-flags.DEFINE_integer('variations', -1,
+flags.DEFINE_integer('variations', 1,
                      'Number of variations to collect per task. -1 for all.')
 
 class Recorder(object):

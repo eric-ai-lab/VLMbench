@@ -426,7 +426,7 @@ class Scene(object):
         # Some tasks may need additional physics steps
         # (e.g. ball rowling to goal)
         if not success:
-            for _ in range(10):
+            for _ in range(20):
                 self._pyrep.step()
                 self._active_task.step()
                 self._demo_record_step(demo, record, callable_each_step)
@@ -440,6 +440,7 @@ class Scene(object):
             #                 self._active_task)
         d = Demo(demo)
         d.high_level_instructions = self.descriptions
+        self._robot.gripper.release()
         self._pyrep.set_configuration_tree(init_states)
         return d, success
 

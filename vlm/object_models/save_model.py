@@ -46,7 +46,7 @@ class Model_Modifer(object):
             part = Shape(m["orginal_name"])
             part_name = m["name"]
             part.set_name(part_name)
-            part.compute_mass_and_inertia(500)
+            # part.compute_mass_and_inertia(1000)
             part.set_renderable(False)
             part.set_respondable(True)
             # part.set_dynamic(True)
@@ -580,7 +580,7 @@ if __name__=="__main__":
     }
     model_config_fridge = {
         "class": "fridge",
-        "name": "fridge2",
+        "name": "fridge5",
         "articulated": True,
         "constraints": {
             "Revolute_joint":[0, 1]
@@ -589,8 +589,8 @@ if __name__=="__main__":
         "manipulated_part":[1],
         "parts":[
             {
-                "orginal_name":"fridge2_base",
-                "name": "fridge2_base",
+                "orginal_name":"fridge5_base",
+                "name": "fridge5_base",
                 "graspable": False,
                 "property":{
                     "shape": "base of fridge",
@@ -600,8 +600,8 @@ if __name__=="__main__":
                 }
             },
             {
-                "orginal_name":"fridge2_door",
-                "name": "fridge2_door",
+                "orginal_name":"fridge5_door",
+                "name": "fridge5_door",
                 "graspable": False,
                 "property":{
                     "shape": "door of fridge",
@@ -625,7 +625,7 @@ if __name__=="__main__":
     }
     model_config_micro = {
         "class": "microwave",
-        "name": "microwave4",
+        "name": "microwave6",
         "articulated": True,
         "constraints": {
             "Revolute_joint":[0, 1]
@@ -634,8 +634,8 @@ if __name__=="__main__":
         "manipulated_part":[1],
         "parts":[
             {
-                "orginal_name":"microwave4_base",
-                "name": "microwave4_base",
+                "orginal_name":"microwave6_base",
+                "name": "microwave6_base",
                 "graspable": False,
                 "property":{
                     "shape": "base of microwave",
@@ -645,8 +645,8 @@ if __name__=="__main__":
                 }
             },
             {
-                "orginal_name":"microwave4_door",
-                "name": "microwave4_door",
+                "orginal_name":"microwave6_door",
+                "name": "microwave6_door",
                 "graspable": False,
                 "property":{
                     "shape": "door of microwave",
@@ -727,5 +727,5 @@ if __name__=="__main__":
         ]
     }
     # modifer.import_model(letters_config)
-    modifer.extra_from_ttm(mug_config,"./vlm/object_models/mug/mug6_original.ttm")
+    modifer.extra_from_ttm(model_config_fridge,"./vlm/object_models/fridge/fridge5_original.ttm")
     modifer.pr.shutdown()
