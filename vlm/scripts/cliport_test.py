@@ -186,6 +186,7 @@ def add_argments():
     parser.add_argument('--model_name', type=str, default="cliport_6dof")
     parser.add_argument('--gpu', type=int, default=7)
     parser.add_argument('--task', type=str, default=None)
+    parser.add_argument('--replay', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--relative', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--add_low_lang', type=lambda x:bool(strtobool(x)), default=False)
@@ -223,7 +224,7 @@ if __name__=="__main__":
     # recorder = Recorder()
     recorder = None
     need_test_numbers = 100
-    replay_test = False
+    replay_test = args.replay
     
     renew_obs = args.renew_obs
     need_post_grap = True
@@ -235,14 +236,17 @@ if __name__=="__main__":
     elif args.task == 'stack':
         task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
     elif args.task == 'place':
+        need_pre_move = True
         task_files = ['place_into_shape_sorter_color', 'place_into_shape_sorter_relative', 'place_into_shape_sorter_shape']
     elif args.task == 'wipe':
         task_files = ['wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
     elif args.task == 'pour':
         task_files = ['pour_demo_color', 'pour_demo_relative', 'pour_demo_size']
     elif args.task == 'drawer':
+        need_post_grap=False
         task_files = ['open_drawer', 'open_drawer_cabinet']
     elif args.task == 'door':
+        need_post_grap=False
         task_files = ['open_door']
     train_tasks = [task_file_to_task_class(t, parent_folder = 'vlm') for t in task_files]
     data_folder = Path(args.data_folder)
