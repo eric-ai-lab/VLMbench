@@ -190,6 +190,7 @@ def add_argments():
     parser.add_argument('--relative', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--add_low_lang', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--ignore_collision', type=lambda x:bool(strtobool(x)), default=False)
     args = parser.parse_args()
     return args
 
@@ -217,7 +218,10 @@ if __name__=="__main__":
     obs_config.wrist_camera.render_mode = RenderMode.OPENGL
     obs_config.front_camera.render_mode = RenderMode.OPENGL
 
-    action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK)
+    if args.ignore_collision:
+        action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME)
+    else:
+        action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK)
     env = Environment(action_mode, obs_config=obs_config, headless=True)
     env.launch()
 
@@ -284,7 +288,18 @@ if __name__=="__main__":
             print(high_descriptions)
             target_grasp_obj_name = None
             try:
-                target_grasp_obj_name = waypoints_info['waypoint0']['target_obj_name']
+                grasp_pose = waypoints_info['waypoint1']['pose'][0]
+                target_name = None
+                distance = np.inf
+                for g_obj in task._task.get_graspable_objects():
+                    obj_name = g_obj.get_name()
+                    obj_pos = g_obj.get_position()
+                    c_distance = np.linalg.norm(obj_pos-grasp_pose[:3])
+                    if c_distance < distance:
+                        target_name = obj_name
+                        distance = c_distance
+                if distance < 0.2:
+                    target_grasp_obj_name = target_name
             except:
                 print("need re-generate.")
             step_list = CliportAgent.generate_action_list(waypoints_info, args)
