@@ -161,6 +161,7 @@ class Task(object):
                 info = {'pose': [waypoint.end_pose, waypoint.start_pose]}
             info.update({
                 'target_obj':waypoint.focus_obj_id,
+                'target_obj_name':Object.get_object_name(waypoint.focus_obj_id),
                 'gripper_control':waypoint.gripper_control,
                 'low_level_descriptions':waypoint.low_level_descriptions,
                 'waypoint_type':waypoint.waypoint_type

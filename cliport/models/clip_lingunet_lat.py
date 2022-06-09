@@ -28,10 +28,10 @@ class CLIPLingUNetLat(nn.Module):
         self.up_factor = 2 if self.bilinear else 1
         self.preprocess = preprocess
 
-        self._load_clip()
-        # self.clip_rn50,_ = load_clip('RN50', device=self.device)
-        # for parameter in self.clip_rn50.parameters():
-        #     parameter.requires_grad=False
+        # self._load_clip()
+        self.clip_rn50,_ = load_clip('RN50', device=self.device)
+        for parameter in self.clip_rn50.parameters():
+            parameter.requires_grad=False
         self._build_decoder()
 
     def _load_clip(self):

@@ -482,7 +482,7 @@ class TwoStreamClipLingUNetTransporterAgent(TransporterAgent):
         cv2.destroyAllWindows()
 """
 class TwoStreamClipLingUNetLatTransporterAgent_IGNORE(TwoStreamClipLingUNetTransporterAgent):
-    def __init__(self, name, device, cfg, z_roll_pitch):
+    def __init__(self, name, device, cfg, z_roll_pitch=True):
         self.crop_size = 32
         # self.n_rotations = 1
         # utils.set_seed(0)

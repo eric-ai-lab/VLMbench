@@ -266,6 +266,7 @@ if __name__=="__main__":
     for i, task_to_train in enumerate(train_tasks):
         e_path = load_test_config(data_folder, task_files[i])
         success_times = 0
+        grasp_success_times = 0
         all_time = 0
         task = env.get_task(task_to_train)
         for num, e in enumerate(e_path):
@@ -281,6 +282,11 @@ if __name__=="__main__":
             if high_descriptions[-1]!=".":
                 high_descriptions+="."
             print(high_descriptions)
+            target_grasp_obj_name = None
+            try:
+                target_grasp_obj_name = waypoints_info['waypoint0']['target_obj_name']
+            except:
+                print("need re-generate.")
             step_list = CliportAgent.generate_action_list(waypoints_info, args)
             action_list = []
             collision_checking_list = []
@@ -320,12 +326,14 @@ if __name__=="__main__":
                 if renew_obs:
                     try:
                         for action, collision_checking in zip(action_list,collision_checking_list):
-                            obs, reward, terminate = task.step(action, collision_checking, recorder = recorder)
+                            obs, reward, terminate = task.step(action, collision_checking, recorder = recorder, need_grasp_obj = target_grasp_obj_name)
                         action_list = []
                         collision_checking_list = []
                         if reward == 1:
                             success_times+=1
                             break
+                        elif reward == 0.5:
+                            grasp_success_times += 1
                     except Exception as e:
                         print(e)
                         break
@@ -344,13 +352,16 @@ if __name__=="__main__":
                 # collision_checking_list = [True, False, False] + collision_checking_list
                 try:
                     for action, collision_checking in zip(action_list,collision_checking_list):
-                        obs, reward, terminate = task.step(action, collision_checking, recorder = recorder, use_auto_move=True)
+                        obs, reward, terminate = task.step(action, collision_checking, recorder = recorder, use_auto_move=True, need_grasp_obj = target_grasp_obj_name)
                         if reward == 1:
                             success_times+=1
                             break
+                        elif reward == 0.5:
+                            grasp_success_times += 1
                 except Exception as e:
                     print(e)
             if recorder is not None:
                 recorder.save(f"./records/error1_{task.get_name()}.avi")
             print(f"{task.get_name()}: success {success_times} times in {all_time} steps!")
+            print(f"{task.get_name()}: grasp success {grasp_success_times} times in {all_time} steps!")
     env.shutdown()

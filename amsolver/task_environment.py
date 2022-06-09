@@ -230,7 +230,7 @@ class TaskEnvironment(object):
 
         return observations, success_in_path
 
-    def step(self, action, collision_checking=None, use_auto_move=True, recorder = None) -> Tuple[Observation, int, bool]:
+    def step(self, action, collision_checking=None, use_auto_move=True, recorder = None, need_grasp_obj = None) -> Tuple[Observation, int, bool]:
         # returns observation, reward, done, info
         if not self._reset_called:
             raise RuntimeError(
@@ -391,13 +391,16 @@ class TaskEnvironment(object):
             raise RuntimeError('Unrecognised action mode.')
 
         obs = self._scene.get_observation()
-
+        grasp_sucess = False
         if current_ee != ee_action:
             done = False
             if ee_action == 0.0 and self._attach_grasped_objects:
                 # If gripper close action, the check for grasp.
                 for g_obj in self._task.get_graspable_objects():
-                    self._robot.gripper.grasp(g_obj)
+                    succ = self._robot.gripper.grasp(g_obj)
+                    if need_grasp_obj is not None:
+                        if g_obj.get_name() == need_grasp_obj and succ:
+                            grasp_sucess = True
             else:
                 # If gripper open action, the check for ungrasp.
                 self._robot.gripper.release()
@@ -416,6 +419,8 @@ class TaskEnvironment(object):
         # reward = float(success) if task_reward is None else task_reward
         if len(success_in_path) > 0:
             success = 1.0
+        elif grasp_sucess:
+            success = 0.5
         reward = float(success)
         return obs, reward, terminate
 
