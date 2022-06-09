@@ -48,10 +48,11 @@ class OpenDrawer(Task):
             drawer_task = T2_MoveObjectConstraints(self.robot, self.pyrep, drawer_target, self.task_base, fail_times=2)
             grasp_task = T0_ObtainControl(self.robot, self.pyrep, self.manipulate_drawer, self.task_base, try_times=100,
                     need_post_grasp=False, grasp_sort_key="horizontal", next_task_fuc=drawer_task.get_path_with_constraints)
-            if try_times>50:
-                waypoints = grasp_task.get_path(try_ik_sampling=True, ignore_collisions=False)
-            else:
-                waypoints = grasp_task.get_path(try_ik_sampling=False, ignore_collisions=False)
+            waypoints = grasp_task.get_path(try_ik_sampling=True, ignore_collisions=False)
+            # if try_times>50:
+            #     waypoints = grasp_task.get_path(try_ik_sampling=True, ignore_collisions=False)
+            # else:
+            #     waypoints = grasp_task.get_path(try_ik_sampling=False, ignore_collisions=False)
             if waypoints is not None:
                 self.temporary_waypoints += waypoints
             try_times += 1

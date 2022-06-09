@@ -110,6 +110,17 @@ seen_planes ={
     }
 }
 
+unseen_planes ={
+    "cross":{
+        "path":"basic_shapes/plane_cross.ttm",
+        "directional": True
+    },
+    "flower":{
+        "path":"basic_shapes/plane_flower.ttm",
+        "directional": False
+    }
+}
+
 seen_sorter_objects = {
     "star":{
         "path":"star/star_normal/star_normal.ttm"
@@ -161,6 +172,13 @@ seen_cabinet_list = [
         {
             "path": "cabinet/cabinet5/cabinet5.ttm",
             "max_joint": 0.32
+        }
+]
+
+unseen_cabinet_list = [
+        {
+            "path": "cabinet/cabinet3/cabinet3.ttm",
+            "max_joint": 0.19
         }
 ]
 
