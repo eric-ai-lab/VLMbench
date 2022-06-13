@@ -27,18 +27,20 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '/data1/zhengkz/rlbench_data/test/seen',
+                    '/data1/zhengkz/rlbench_data/test/unseen_new',
                     'Where to save the demos.')
 flags.DEFINE_list('tasks', [
+                            # 'place_into_shape_sorter_color',
+                            # 'place_into_shape_sorter_shape', 'place_into_shape_sorter_relative',
                             # 'drop_pen_color', 'drop_pen_relative', 'drop_pen_size',
                             # 'wipe_table_color', 'wipe_table_relative', 'wipe_table_shape', 'wipe_table_size', 'wipe_table_direction',
-                            # 'pour_demo_color', 'pour_demo_relative', 'pour_demo_size',
+                            'pour_demo_color', 'pour_demo_relative', 'pour_demo_size',
                             # 'pick_cube_color', 'pick_cube_relative', 'pick_cube_shape', 'pick_cube_size',
                             # 'stack_cubes_color', 'stack_cubes_size',
                             # 'stack_cubes_relative', 'stack_cubes_shape',
-                            'place_into_shape_sorter_color', 'place_into_shape_sorter_shape', 'place_into_shape_sorter_relative',
-                            # 'open_door', 'open_drawer', 'open_drawer_cabinet'
-                            # 'open_door'
+                            'open_door_complex',
+                            'open_drawer'
+                            # 'open_door', 'open_drawer_cabinet'
 ],
                   'The tasks to collect. If empty, all tasks are collected.')
 flags.DEFINE_list('image_size', [360, 360],
@@ -49,6 +51,8 @@ flags.DEFINE_enum('renderer',  'opengl', ['opengl', 'opengl3'],
 flags.DEFINE_integer('processes', 16,
                      'The number of parallel processes during collection.')
 flags.DEFINE_integer('episodes_per_task', 5,
+                     'The number of episodes to collect per task.')
+flags.DEFINE_integer('episodes_per_task_all_variations', 100,
                      'The number of episodes to collect per task.')
 flags.DEFINE_integer('variations', -1,
                      'Number of variations to collect per task. -1 for all.')
@@ -146,6 +150,8 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
                 break
             t = tasks[task_index.value]
 
+        if FLAGS.episodes_per_task_all_variations>0:
+            FLAGS.episodes_per_task = (FLAGS.episodes_per_task_all_variations // var_target)+1
         task_env = amsolver_env.get_task(t)
         task_env.set_variation(my_variation_count)
 

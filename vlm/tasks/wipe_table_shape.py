@@ -20,7 +20,7 @@ class WipeTableShape(WipeTable):
         self.target_list = [self.shape_lib[selected_shapes][0]]
         other_shapes_index = list(range(len(shape_list)))
         other_shapes_index.remove(index)
-        distractor_number = np.random.randint(1,3)
+        distractor_number = np.random.randint(1,min(len(shape_list),3))
         distractor_index = np.random.choice(other_shapes_index, distractor_number, replace=False)
         for i in distractor_index:
             selected_shapes = shape_list[i]

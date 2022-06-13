@@ -19,6 +19,6 @@ class OneStreamTransportLangFusion(TwoStreamTransportLangFusion):
         print(f"Transport FCN: {stream_one_fcn}")
 
     def transport(self, in_tensor, crop, l):
-        logits = self.key_stream_one(in_tensor, l)
+        logits = self.query_stream_one(in_tensor, l)
         kernel = self.key_stream_one(crop, l)
         return logits, kernel

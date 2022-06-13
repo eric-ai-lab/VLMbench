@@ -7,7 +7,7 @@ from pyrep.objects.dummy import Dummy
 from pyrep.objects.proximity_sensor import ProximitySensor
 from amsolver.backend.unit_tasks import T0_ObtainControl, T2_MoveObjectConstraints, TargetSpace, VLM_Object
 from amsolver.backend.conditions import JointCondition
-from amsolver.const import colors
+from amsolver.const import colors, complex_door_list
 from amsolver.backend.conditions import DetectedCondition
 from amsolver.backend.spawn_boundary import SpawnBoundary
 from pyrep.objects.joint import Joint
@@ -22,7 +22,7 @@ class OpenDoorComplex(OpenDoor):
 
     def init_task(self) -> None:
         model_dir = os.path.dirname(os.path.realpath(__file__)).replace("tasks","object_models/")
-        model_path = model_dir+"door/door1/door1.ttm"
+        model_path = model_dir+complex_door_list[0]['path']
         self.spawn_space = SpawnBoundary([Shape('workspace')])
         self.boundary_root_ori = Shape("boundary_root").get_orientation()
         self.attach_point = Dummy.create()

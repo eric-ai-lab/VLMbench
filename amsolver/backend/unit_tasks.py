@@ -292,6 +292,7 @@ class T0_ObtainControl(object):
                             # WriteCustomDataBlock(waypoint.get_handle(),"ignore_collisions","True")
                         WriteCustomDataBlock(waypoint.get_handle(),"low_level_descriptions",low_level_descriptions)
                         WriteCustomDataBlock(waypoint.get_handle(),"focus_obj_id",str(self.target_obj.visual))
+                        WriteCustomDataBlock(waypoint.get_handle(),"focus_obj_name",Shape.get_object_name(self.target_obj.visual))
                         if ignore_collisions or i==2:
                             WriteCustomDataBlock(waypoint.get_handle(),"ignore_collisions","True")
                         waypoints.append(waypoint)
@@ -409,6 +410,7 @@ class T1_MoveObjectGoal(object):
                     WriteCustomDataBlock(target.get_handle(),"gripper","['open',1]")
                 WriteCustomDataBlock(target.get_handle(),"low_level_descriptions",low_level_descriptions)
                 WriteCustomDataBlock(target.get_handle(),"focus_obj_id",str(focus_obj_id))
+                WriteCustomDataBlock(target.get_handle(),"focus_obj_name",Shape.get_object_name(focus_obj_id))
                 WriteCustomDataBlock(target.get_handle(),"waypoint_type","goal_move")
                 if self.next_task_fuc is not None:
                     next_path = self.next_task_fuc() if self.next_task_args is None else self.next_task_fuc(**self.next_task_args)
@@ -471,11 +473,13 @@ class T1_MoveObjectGoal(object):
                 WriteCustomDataBlock(target.get_handle(),"gripper","['open',1]")
             WriteCustomDataBlock(target.get_handle(),"low_level_descriptions",low_level_descriptions)
             WriteCustomDataBlock(target.get_handle(),"focus_obj_id",str(focus_obj_id))
+            WriteCustomDataBlock(target.get_handle(),"focus_obj_name",Shape.get_object_name(focus_obj_id))
             WriteCustomDataBlock(target.get_handle(),"ignore_collisions","True")
             WriteCustomDataBlock(target.get_handle(),"waypoint_type","goal_move")
 
             WriteCustomDataBlock(pre_target.get_handle(),"low_level_descriptions","Move the object to the {} of {}".format(get_relative_position_xy(target, pre_target, self.arm), target_space_descriptions))
             WriteCustomDataBlock(pre_target.get_handle(),"focus_obj_id",str(focus_obj_id))
+            WriteCustomDataBlock(pre_target.get_handle(),"focus_obj_name",Shape.get_object_name(focus_obj_id))
             WriteCustomDataBlock(pre_target.get_handle(),"waypoint_type","pre_goal_move")
             if self.next_task_fuc is not None:
                 next_path = self.next_task_fuc() if self.next_task_args is None else self.next_task_fuc(**self.next_task_args)
@@ -524,6 +528,7 @@ class T1_MoveObjectGoal(object):
                     low_level_descriptions += " Release the gripper."
                 WriteCustomDataBlock(gripper_target.get_handle(),"low_level_descriptions",low_level_descriptions)
                 WriteCustomDataBlock(gripper_target.get_handle(),"focus_obj_id",str(focus_obj_id))
+                WriteCustomDataBlock(gripper_target.get_handle(),"focus_obj_name",Shape.get_object_name(focus_obj_id))
                 WriteCustomDataBlock(gripper_target.get_handle(),"waypoint_type","goal_move")
                 WriteCustomDataBlock(gripper_target.get_handle(), "ignore_collisions",str(ignore_collisions))
                 WriteCustomDataBlock(gripper_target.get_handle(), "linear",str(linear))
@@ -647,6 +652,7 @@ class T2_MoveObjectConstraints(T1_MoveObjectGoal):
                     low_level_descriptions = "Rotate around the axis of {}.".format(target_space_descriptions)
                 WriteCustomDataBlock(new_path.get_handle(),"low_level_descriptions",low_level_descriptions)
                 WriteCustomDataBlock(new_path.get_handle(),"focus_obj_id",str(focus_obj_id))
+                WriteCustomDataBlock(new_path.get_handle(),"focus_obj_name",Shape.get_object_name(focus_obj_id))
                 WriteCustomDataBlock(new_path.get_handle(),"waypoint_type","path_move")
                 if self.next_task_fuc is not None:
                     next_path = self.next_task_fuc() if self.next_task_args is None else self.next_task_fuc(**self.next_task_args)
@@ -703,6 +709,7 @@ class T2_MoveObjectConstraints(T1_MoveObjectGoal):
                 fast_path_test(path, self.robot)
                 WriteCustomDataBlock(new_path.get_handle(),"low_level_descriptions", target_space_descriptions)
                 WriteCustomDataBlock(new_path.get_handle(),"focus_obj_id",str(focus_obj_id))
+                WriteCustomDataBlock(new_path.get_handle(),"focus_obj_name",Shape.get_object_name(focus_obj_id))
                 WriteCustomDataBlock(new_path.get_handle(),"waypoint_type","path_move")
                 WriteCustomDataBlock(new_path.get_handle(), "ignore_collisions",str(ignore_collisions))
                 WriteCustomDataBlock(new_path.get_handle(), "linear",str(linear))

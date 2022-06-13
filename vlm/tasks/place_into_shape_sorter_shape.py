@@ -1,12 +1,12 @@
 from typing import List
 import numpy as np
 from pyrep.objects.shape import Shape
-from amsolver.const import colors
+from amsolver.const import colors, sorter_objects
 from amsolver.backend.task import Task
 from amsolver.backend.utils import select_color
 from vlm.tasks.place_into_shape_sorter import PlaceIntoShapeSorter
 
-shape_list = ["star", "moon", "triangular", "cylinder", "cube"]
+shape_list = list(sorter_objects.keys())
 class PlaceIntoShapeSorterShape(PlaceIntoShapeSorter):
     def init_task(self) -> None:
         self.need_distractors = True

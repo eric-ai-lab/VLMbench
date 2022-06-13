@@ -401,6 +401,9 @@ class TaskEnvironment(object):
                     if need_grasp_obj is not None:
                         if g_obj.get_name() == need_grasp_obj and succ:
                             grasp_sucess = True
+                if need_grasp_obj is not None:
+                    if self._robot.gripper._proximity_sensor.is_detected(Object.get_object(need_grasp_obj)):
+                        grasp_sucess = True
             else:
                 # If gripper open action, the check for ungrasp.
                 self._robot.gripper.release()
@@ -542,9 +545,6 @@ class TaskEnvironment(object):
                 try:
                     demo, success = self._scene.get_demo(
                         record = record, callable_each_step=callable_each_step)
-                    if not record and not success:
-                        attempts -= 1
-                        continue
                     demo.random_seed = random_seed
                     demos.append(demo)
                     success_all.append(success)
@@ -561,25 +561,45 @@ class TaskEnvironment(object):
         demo.restore_state()
         return self.reset()
     
-    def save_config(self):
-        self._scene.reset()
-        try:
-            ctr_loop = self._robot.arm.joints[0].is_control_loop_enabled()
-            self._robot.arm.set_control_loop_enabled(True)
-            demos, success_all = self._get_live_demos(amount=1,record=False)
-            desc = demos[0].high_level_instructions
+    def save_config(self, max_attempts: int = _MAX_DEMO_ATTEMPTS):
+        random_seed = np.random.get_state()
+        desc,_ = self.reset()
+        task_base, waypoint_sets, config = self.read_config(desc)
+        config.random_seed = random_seed
+
+        """
+        attempts = max_attempts
+        while attempts > 0:
+            random_seed = np.random.get_state()
+            desc,_ = self.reset()
+            task_base, waypoint_sets, config = self.read_config(desc)
+            config.random_seed = random_seed
+            try:
+                demo, success = self._scene.get_demo(record = False)
+                if not success:
+                    attempts -= 1
+                    continue
+                break
+            except Exception as e:
+                attempts -= 1
+                logging.info('Bad demo. ' + str(e))
+        """
+            # ctr_loop = self._robot.arm.joints[0].is_control_loop_enabled()
+            # self._robot.arm.set_control_loop_enabled(True)
+            # demos, success_all = self._get_live_demos(amount=1,record=False)
+            # desc = demos[0].high_level_instructions
             # desc = self._scene.init_episode(
             #     self._variation_number, max_attempts=_MAX_RESET_ATTEMPTS,
             #     randomly_place=not self._static_positions)
-            self._robot.arm.set_control_loop_enabled(ctr_loop)
-        except (BoundaryError, WaypointError) as e:
-            raise TaskEnvironmentError(
-                'Could not place the task %s in the scene. This should not '
-                'happen, please raise an issues on this task.'
-                % self._task.get_name()) from e
+            # self._robot.arm.set_control_loop_enabled(ctr_loop)
+        # except (BoundaryError, WaypointError) as e:
+        #     raise TaskEnvironmentError(
+        #         'Could not place the task %s in the scene. This should not '
+        #         'happen, please raise an issues on this task.'
+        #         % self._task.get_name()) from e
 
-        self._reset_called = True
-        task_base, waypoint_sets, config = self.read_config(desc)
+        # self._reset_called = True
+        
         return task_base, waypoint_sets, config
     
     def read_config(self, desc):

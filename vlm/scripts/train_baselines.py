@@ -226,7 +226,8 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-        val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset)
+        # val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset)
+        val_sampler = None
     else:
         train_sampler = None
         val_sampler = None
@@ -269,11 +270,13 @@ def main_worker(gpu, ngpus_per_node, args):
 
         # train for one epoch
         train(train_loader, model, optimizer, scheduler, epoch, losses, args, timer, loss_func)
-        val_loss = val(val_loader, model, args, epoch)
+        # dist.barrier()
+        # val_loss = val(val_loader, model, args, epoch)
         if args.wandb_entity is not None and args.rank==0:
             wandb.log({k:v.avg for k,v in losses.items()}, step=epoch)
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
                 and args.rank % ngpus_per_node == 0):
+            val_loss = val(val_loader, model, args, epoch)
             train_tasks = "all"
             if args.train_tasks is not None:
                 train_tasks = args.train_tasks[0]
@@ -295,6 +298,7 @@ def main_worker(gpu, ngpus_per_node, args):
                     'train_tasks': args.train_tasks
                 }, is_best=False, filename=save_name_best)
             if (epoch + 1)%5==0:
+                save_name += f"_epoch{epoch}"
                 save_checkpoint({
                         'epoch': epoch + 1,
                         'arch': args.baseline_mode,
@@ -302,6 +306,8 @@ def main_worker(gpu, ngpus_per_node, args):
                         # 'optimizer' : optimizer.state_dict(),
                         'train_tasks': args.train_tasks
                     }, is_best=False, filename=save_name)
+    # if args.distributed:
+    #     dist.barrier()
     if args.wandb_entity is not None and args.rank==0:
         wandb.finish()
 
@@ -427,9 +433,9 @@ def val(data_loader, model, args, epoch):
         loss = sum(l.item() for l in loss_dict.values())
         total_loss.append(loss)
     total_loss = torch.tensor(total_loss).cuda(args.gpu)
-    if args.distributed:
-        dist.barrier()
-        dist.all_reduce(total_loss)
+    # if args.distributed:
+        # dist.barrier(device_ids=[args.gpu])
+        # dist.all_reduce(total_loss)
     avg_loss = total_loss.mean().item()
     if args.rank==0:
         tmp_str = 'Epoch [{}/{}] Val_loss: {:.4f} '.format(epoch + 1, args.epochs, avg_loss)

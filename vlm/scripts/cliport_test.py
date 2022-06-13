@@ -55,7 +55,7 @@ class ReplayAgent(object):
         return action, waypoint_type
 
 class CliportAgent(object):
-    def __init__(self, model_name, device_id=0, z_roll_pitch=True, checkpoint=None) -> None:
+    def __init__(self, model_name, device_id=0, z_roll_pitch=True, checkpoint=None, args=None) -> None:
         cfg = {
             'train':{
                 'attn_stream_fusion_type': 'add',
@@ -83,7 +83,7 @@ class CliportAgent(object):
             state_dict = torch.load(checkpoint,device)
             self.agent.load_state_dict(state_dict['state_dict'])
         self.agent.eval()
-
+        self.args = args
     @staticmethod
     def generate_action_list(waypoints_info, args):
         all_waypoints = []
@@ -128,7 +128,10 @@ class CliportAgent(object):
         if self.model_name =="transporter_6dof":
             lang = f"Step {num2words(step_id)}."
         with torch.no_grad():
-            inp_img, lang_goal, p0, output_dict = self.agent.act(obs, [lang], bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, 1.2]]), pixel_size=5.625e-3/2)
+            z_max = 1.2
+            if 'door' in self.args.task or 'drawer' in self.args.task:
+                z_max = 1.2
+            inp_img, lang_goal, p0, output_dict = self.agent.act(obs, [lang], bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, z_max]]), pixel_size=5.625e-3)
         action = np.zeros(8)
         action[:7] = gt_pose
         if not use_gt_xy:
@@ -181,15 +184,19 @@ def set_seed(seed, torch=False):
 def add_argments():
     parser = argparse.ArgumentParser(description='')
     #dataset
-    parser.add_argument('--data_folder', type=str, default="/data1/zhengkz/rlbench_data/test/seen")
-    parser.add_argument('--checkpoints_folder', type=str, default="/data1/zhengkz/new_weights")
+    parser.add_argument('--data_folder', type=str, default="/data1/zhengkz/rlbench_data/test")
+    parser.add_argument('--setd', type=str, default="seen")
+    parser.add_argument('--checkpoints_folder', type=str, default="/data1/zhengkz/weights_160_128")
     parser.add_argument('--model_name', type=str, default="cliport_6dof")
+    parser.add_argument('--img_size',nargs='+', type=int, default=[224,224])
     parser.add_argument('--gpu', type=int, default=7)
     parser.add_argument('--task', type=str, default=None)
     parser.add_argument('--replay', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--relative', type=lambda x:bool(strtobool(x)), default=False)
-    parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=True)
     parser.add_argument('--add_low_lang', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--ignore_collision', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--goal_conditioned', type=lambda x:bool(strtobool(x)), default=False)
     args = parser.parse_args()
     return args
 
@@ -198,7 +205,7 @@ if __name__=="__main__":
     set_seed(0)
     obs_config = ObservationConfig()
     obs_config.set_all(True)
-    img_size=(360,360)
+    img_size=args.img_size
     obs_config.right_shoulder_camera.image_size = img_size
     obs_config.left_shoulder_camera.image_size = img_size
     obs_config.overhead_camera.image_size = img_size
@@ -217,10 +224,6 @@ if __name__=="__main__":
     obs_config.wrist_camera.render_mode = RenderMode.OPENGL
     obs_config.front_camera.render_mode = RenderMode.OPENGL
 
-    action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK)
-    env = Environment(action_mode, obs_config=obs_config, headless=True)
-    env.launch()
-
     # recorder = Recorder()
     recorder = None
     need_test_numbers = 100
@@ -237,19 +240,35 @@ if __name__=="__main__":
         task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
     elif args.task == 'place':
         need_pre_move = True
+        # args.ignore_collision = True
         task_files = ['place_into_shape_sorter_color', 'place_into_shape_sorter_relative', 'place_into_shape_sorter_shape']
     elif args.task == 'wipe':
         task_files = ['wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
     elif args.task == 'pour':
         task_files = ['pour_demo_color', 'pour_demo_relative', 'pour_demo_size']
     elif args.task == 'drawer':
+        args.ignore_collision = True
         need_post_grap=False
-        task_files = ['open_drawer', 'open_drawer_cabinet']
+        # task_files = ['open_drawer', 'open_drawer_cabinet']
+        task_files = ['open_drawer']
     elif args.task == 'door':
+        args.ignore_collision = True
         need_post_grap=False
         task_files = ['open_door']
+    elif args.task == 'door_complex':
+        args.ignore_collision = True
+        need_post_grap=False
+        task_files = ['open_door_complex']
+
+    if args.ignore_collision:
+        action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME)
+    else:
+        action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK)
+    env = Environment(action_mode, obs_config=obs_config, headless=True)
+    env.launch()
+
     train_tasks = [task_file_to_task_class(t, parent_folder = 'vlm') for t in task_files]
-    data_folder = Path(args.data_folder)
+    data_folder = Path(os.path.join(args.data_folder, args.setd))
     if not replay_test:
         checkpoint = args.checkpoints_folder + f"/conv_checkpoint_{args.model_name}_{args.task}"
         if args.relative:
@@ -260,9 +279,16 @@ if __name__=="__main__":
             checkpoint += '_low'
         checkpoint += '_best.pth'
         # checkpoint = "/data1/zhengkz/new_weights/conv_checkpoint_cliport_6dof_stack_best_norenew_low.pth"
-        agent = CliportAgent(args.model_name, device_id=args.gpu,z_roll_pitch=True, checkpoint=checkpoint)
+        agent = CliportAgent(args.model_name, device_id=args.gpu,z_roll_pitch=True, checkpoint=checkpoint, args=args)
     else:
         agent = ReplayAgent()
+    output_file_name = f"./results/160_{args.task}_{args.setd}"
+    if args.goal_conditioned:
+        output_file_name += "_goalcondition"
+    if args.ignore_collision:
+        output_file_name += "_ignore"
+    output_file_name += ".txt"
+    file = open(output_file_name, "w")
     for i, task_to_train in enumerate(train_tasks):
         e_path = load_test_config(data_folder, task_files[i])
         success_times = 0
@@ -284,7 +310,21 @@ if __name__=="__main__":
             print(high_descriptions)
             target_grasp_obj_name = None
             try:
-                target_grasp_obj_name = waypoints_info['waypoint0']['target_obj_name']
+                if len(waypoints_info['waypoint1']['target_obj_name'])!=0:
+                    target_grasp_obj_name = waypoints_info['waypoint1']['target_obj_name']
+                else:
+                    grasp_pose = waypoints_info['waypoint1']['pose'][0]
+                    target_name = None
+                    distance = np.inf
+                    for g_obj in task._task.get_graspable_objects():
+                        obj_name = g_obj.get_name()
+                        obj_pos = g_obj.get_position()
+                        c_distance = np.linalg.norm(obj_pos-grasp_pose[:3])
+                        if c_distance < distance:
+                            target_name = obj_name
+                            distance = c_distance
+                    if distance < 0.2:
+                        target_grasp_obj_name = target_name
             except:
                 print("need re-generate.")
             step_list = CliportAgent.generate_action_list(waypoints_info, args)
@@ -300,7 +340,10 @@ if __name__=="__main__":
                 lang = high_descriptions+f" Step {num2words(i)}."
                 if args.add_low_lang:
                     lang += sub_step[1]
-                action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=False, use_gt_z= False, use_gt_theta= False, use_gt_roll_pitch=False)
+                if args.goal_conditioned and i == 0:
+                    action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=True, use_gt_z= True, use_gt_theta= True, use_gt_roll_pitch=True)
+                else:
+                    action, action_type = agent.act(step_list, i, obs, lang, use_gt_xy=False, use_gt_z= False, use_gt_theta= False, use_gt_roll_pitch=False)
                 if "grasp" in action_type:
                     pre_action = action.copy()
                     pose = R.from_quat(action[3:7]).as_matrix()
@@ -325,15 +368,22 @@ if __name__=="__main__":
                     collision_checking_list += [None]
                 if renew_obs:
                     try:
+                        grasped = False
+                        successed = False
                         for action, collision_checking in zip(action_list,collision_checking_list):
                             obs, reward, terminate = task.step(action, collision_checking, recorder = recorder, need_grasp_obj = target_grasp_obj_name)
+                            if reward == 0.5:
+                                grasped = True
+                            elif reward == 1:
+                                success_times+=1
+                                successed = True
+                                break
                         action_list = []
                         collision_checking_list = []
-                        if reward == 1:
-                            success_times+=1
+                        if grasped:
+                            grasp_success_times+=1
+                        if successed:
                             break
-                        elif reward == 0.5:
-                            grasp_success_times += 1
                     except Exception as e:
                         print(e)
                         break
@@ -364,4 +414,6 @@ if __name__=="__main__":
                 recorder.save(f"./records/error1_{task.get_name()}.avi")
             print(f"{task.get_name()}: success {success_times} times in {all_time} steps!")
             print(f"{task.get_name()}: grasp success {grasp_success_times} times in {all_time} steps!")
+            file.write(f"{task.get_name()}:grasp success: {grasp_success_times}, success {success_times}, toal {all_time} steps\n")
+    file.close()
     env.shutdown()

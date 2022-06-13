@@ -59,6 +59,9 @@ class Waypoint(object):
         self.focus_obj_id = None
         if ReadCustomDataBlock(waypoint._handle, "focus_obj_id")!=None:
             self.focus_obj_id = eval(ReadCustomDataBlock(waypoint._handle, "focus_obj_id"))
+        self.focus_obj_name = None
+        if ReadCustomDataBlock(waypoint._handle,"focus_obj_name")!=None:
+            self.focus_obj_name = ReadCustomDataBlock(waypoint._handle, "focus_obj_name")
         self.waypoint_type = None
         if ReadCustomDataBlock(waypoint._handle, "waypoint_type")!=None:
             self.waypoint_type = ReadCustomDataBlock(waypoint._handle, "waypoint_type")

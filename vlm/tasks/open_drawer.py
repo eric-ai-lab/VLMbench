@@ -39,7 +39,7 @@ class OpenDrawer(Task):
             goal_angel, goal_description = self.drawer_setting(setting_index)
             init_states = self.get_state()[0]
         
-            self.manipulate_drawer.description = f"the handle of the {self.manipulate_drawer.property['shape']}"
+            self.manipulate_drawer.descriptions = f"the handle of the {self.manipulate_drawer.property['shape']}"
             drawer_target_description = f"the {self.manipulate_drawer.property['shape']}"
             if "Slightly" in goal_description:
                 drawer_target_description += " slightly"

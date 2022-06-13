@@ -146,6 +146,10 @@ class VLM_dataset(Dataset):
             if not preprocess_data_folder.is_dir():
                 preprocess_data_folder.mkdir()
                 need_rebuild = True
+            if not hasattr(demo_temple, 'observation_config'):
+                need_rebuild = True
+            else:
+                need_rebuild = not (demo_temple.observation_config == self.obs_config)
             obs_list = os.listdir(preprocess_data_folder)
             if len(obs_list)<len(obs_select_inds):
                 need_rebuild=True
@@ -163,10 +167,6 @@ class VLM_dataset(Dataset):
                     else:
                         need_rebuild = True
                         break
-            if not hasattr(demo_temple, 'observation_config'):
-                need_rebuild = True
-            else:
-                need_rebuild = not (demo_temple.observation_config == self.obs_config)
             if need_rebuild:
                 episode_name = episode.name
                 variation_number = int(variation_path.name.replace('variation',''))
@@ -195,8 +195,11 @@ class VLM_dataset(Dataset):
         return self.get_cliport_gt(obs, demo_temple.high_level_instructions, episode)
 
     def get_cliport_gt(self, data, languages, episode):
-        bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, 1.2]])
-        pixel_size = 5.625e-3 / 2
+        z_max = 1.2
+        if 'door' in str(episode) or 'drawer' in str(episode):
+            z_max = 1.5
+        bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, z_max]])
+        pixel_size = 5.625e-3
         target_obj = None
         cmaps, hmaps = [], []
         high_l = np.random.choice(languages, 1)[0]

@@ -41,13 +41,20 @@ all_colors = [
 ]
 #unseen
 unseen_colors = [
-    ('olive', (0.5, 0.5, 0.0)),
-    ('purple', (0.5, 0.0, 0.5)),
-    ('teal', (0, 0.5, 0.5)),
-    ('azure', (0.0, 0.5, 1.0)),
-    ('violet', (0.5, 0.0, 1.0)),
-    ('rose', (1.0, 0.0, 0.5)),
+    ('brown', (0.65, 0.16, 0.16)),
+    ('gold', (1.0, 0.65, 0.0)),
+    ('pink', (1.0, 0.75, 0.8)),
+    ('chocolate', (0.8, 0.4, 0.12)),
+    ('coral', (1.0, 0.5, 0.32))
 ]
+# unseen_colors = [
+#     ('olive', (0.5, 0.5, 0.0)),
+#     ('purple', (0.5, 0.0, 0.5)),
+#     ('teal', (0, 0.5, 0.5)),
+#     ('azure', (0.0, 0.5, 1.0)),
+#     ('violet', (0.5, 0.0, 1.0)),
+#     ('rose', (1.0, 0.0, 0.5)),
+# ]
 #seen objects
 seen_object_shapes = {
     "star":{
@@ -77,8 +84,11 @@ seen_object_shapes = {
 }
 #unseen objects
 unseen_object_shapes = {
-    "moon":{
-        "path":"moon/moon_normal/moon_normal.ttm"
+    # "moon":{
+    #     "path":"moon/moon_normal/moon_normal.ttm"
+    # },
+    "cube":{
+        "path":"cube/cube_basic/cube_basic.ttm"
     },
     "letter_t":{
         "path":"letters/letter_t/letter_t.ttm"
@@ -140,6 +150,18 @@ unseen_sorter_objects = {
     "moon":{
         "path":"moon/moon_normal/moon_normal.ttm"
     },
+    "star":{
+        "path":"star/star_normal/star_normal.ttm"
+    },
+    "triangular":{
+        "path":"triangular/triangular_normal/triangular_normal.ttm"
+    },
+    "cylinder":{
+        "path":"cylinder/cylinder_normal/cylinder_normal.ttm"
+    },
+    "cube":{
+        "path":"cube/cube_basic/cube_basic.ttm"
+    }
 }
 
 seen_drawer_list = [
@@ -150,10 +172,6 @@ seen_drawer_list = [
         {
             "path": "drawer/drawer2/drawer2.ttm",
             "max_joint": 0.2
-        },
-        {
-            "path": "drawer/drawer3/drawer3.ttm",
-            "max_joint": 0.3
         }
 ]
 
@@ -209,7 +227,10 @@ unseen_door_list = [
 seen_complex_door_list = [
         {
             "path": "door/door1/door1.ttm"
-        },
+        }
+]
+
+unseen_complex_door_list = [
         {
             "path": "door/door2/door2.ttm"
         }
@@ -247,3 +268,4 @@ drawer_list = seen_drawer_list
 cabinet_list = seen_cabinet_list
 door_list = seen_door_list
 mug_list = seen_mug_list
+complex_door_list = seen_complex_door_list
