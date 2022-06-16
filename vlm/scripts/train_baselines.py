@@ -276,7 +276,7 @@ def main_worker(gpu, ngpus_per_node, args):
             wandb.log({k:v.avg for k,v in losses.items()}, step=epoch)
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
                 and args.rank % ngpus_per_node == 0):
-            val_loss = val(val_loader, model, args, epoch)
+            val_loss = val(val_loader, model.module, args, epoch)
             train_tasks = "all"
             if args.train_tasks is not None:
                 train_tasks = args.train_tasks[0]
@@ -306,8 +306,8 @@ def main_worker(gpu, ngpus_per_node, args):
                         # 'optimizer' : optimizer.state_dict(),
                         'train_tasks': args.train_tasks
                     }, is_best=False, filename=save_name)
-    # if args.distributed:
-    #     dist.barrier()
+    if args.distributed:
+        dist.barrier()
     if args.wandb_entity is not None and args.rank==0:
         wandb.finish()
 

@@ -1,23 +1,23 @@
 #Copy From the rlbench: https://github.com/stepjam/RLBench
 #seen
-seen_colors = [
-    ('red', (1.0, 0.0, 0.0)),
-    ('maroon', (0.5, 0.0, 0.0)),
-    ('lime', (0.0, 1.0, 0.0)),
-    ('green', (0.0, 0.5, 0.0)),
-    ('blue', (0.0, 0.0, 1.0)),
-    ('navy', (0.0, 0.0, 0.5)),
-    ('yellow', (1.0, 1.0, 0.0)),
-    ('cyan', (0.0, 1.0, 1.0)),
-    ('magenta', (1.0, 0.0, 1.0)),
-    ('silver', (0.75, 0.75, 0.75)),
-    ('gray', (0.5, 0.5, 0.5)),
-    ('orange', (1.0, 0.5, 0.0)),
-    ('black', (0.0, 0.0, 0.0)),
-    ('white', (1.0, 1.0, 1.0)),
-]
+# seen_colors = [
+#     ('red', (1.0, 0.0, 0.0)),
+#     ('maroon', (0.5, 0.0, 0.0)),
+#     ('lime', (0.0, 1.0, 0.0)),
+#     ('green', (0.0, 0.5, 0.0)),
+#     ('blue', (0.0, 0.0, 1.0)),
+#     ('navy', (0.0, 0.0, 0.5)),
+#     ('yellow', (1.0, 1.0, 0.0)),
+#     ('cyan', (0.0, 1.0, 1.0)),
+#     ('magenta', (1.0, 0.0, 1.0)),
+#     ('silver', (0.75, 0.75, 0.75)),
+#     ('gray', (0.5, 0.5, 0.5)),
+#     ('orange', (1.0, 0.5, 0.0)),
+#     ('black', (0.0, 0.0, 0.0)),
+#     ('white', (1.0, 1.0, 1.0)),
+# ]
 
-all_colors = [
+seen_colors = [
     ('red', (1.0, 0.0, 0.0)),
     ('maroon', (0.5, 0.0, 0.0)),
     ('lime', (0.0, 1.0, 0.0)),
@@ -69,24 +69,24 @@ seen_object_shapes = {
     "cube":{
         "path":"cube/cube_basic/cube_basic.ttm"
     },
-    "letter_r":{
-        "path":"letters/letter_r/letter_r.ttm"
+    "moon":{
+        "path":"moon/moon_normal/moon_normal.ttm"
     },
-    "letter_a":{
-        "path":"letters/letter_a/letter_a.ttm"
-    },
-    "letter_v":{
-        "path":"letters/letter_v/letter_v.ttm"
-    },
-    "pentagon":{
-        "path":"basic_shapes/pentagon/pentagon.ttm"
-    }
+    # "letter_r":{
+    #     "path":"letters/letter_r/letter_r.ttm"
+    # },
+    # "letter_a":{
+    #     "path":"letters/letter_a/letter_a.ttm"
+    # },
+    # "letter_v":{
+    #     "path":"letters/letter_v/letter_v.ttm"
+    # },
+    # "pentagon":{
+    #     "path":"basic_shapes/pentagon/pentagon.ttm"
+    # }
 }
 #unseen objects
 unseen_object_shapes = {
-    # "moon":{
-    #     "path":"moon/moon_normal/moon_normal.ttm"
-    # },
     "cube":{
         "path":"cube/cube_basic/cube_basic.ttm"
     },

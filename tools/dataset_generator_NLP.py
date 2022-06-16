@@ -26,17 +26,17 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '/data1/zhengkz/rlbench_data/valid/seen',
+                    '/data1/zhengkz/rlbench_data/train',
                     'Where to save the demos.')
 flags.DEFINE_list('tasks', [
-                            # 'drop_pen_color', 'drop_pen_relative', 'drop_pen_size',
-                            # 'wipe_table_color', 'wipe_table_relative', 'wipe_table_shape', 'wipe_table_size', 'wipe_table_direction',
-                            # 'pour_demo_color', 'pour_demo_relative', 'pour_demo_size',
-                            # 'pick_cube_color', 'pick_cube_relative', 'pick_cube_shape', 'pick_cube_size',
-                            # 'stack_cubes_color', 'stack_cubes_size',
-                            # 'stack_cubes_relative', 'stack_cubes_shape',
-                            # 'place_into_shape_sorter_color', 'place_into_shape_sorter_shape', 'place_into_shape_sorter_relative',
-                            # 'open_door', 'open_drawer', 'open_drawer_cabinet'
+                            'drop_pen_color', 'drop_pen_relative', 'drop_pen_size',
+                            'wipe_table_color', 'wipe_table_relative', 'wipe_table_shape', 'wipe_table_size', 'wipe_table_direction',
+                            'pour_demo_color', 'pour_demo_relative', 'pour_demo_size',
+                            'pick_cube_color', 'pick_cube_relative', 'pick_cube_shape', 'pick_cube_size',
+                            'stack_cubes_color', 'stack_cubes_size',
+                            'stack_cubes_relative', 'stack_cubes_shape',
+                            'place_into_shape_sorter_color', 'place_into_shape_sorter_shape', 'place_into_shape_sorter_relative',
+                            'open_door', 'open_drawer', 'open_drawer_cabinet',
                             'open_door_complex'
                             ],
                   'The tasks to collect. If empty, all tasks are collected.')

@@ -275,7 +275,6 @@ class VLM_dataset(Dataset):
                 delta_r = prev_rot.inv()*current_rot
                 target_point[3:] = delta_r.as_quat()
             target_points.append(target_point)
-            # target_obj = "waypoint1"
             attention_point = obs.object_informations[target_obj]["pose"]#[0]
             attention_points.append(attention_point)
         cmaps = np.stack(cmaps, axis=0)

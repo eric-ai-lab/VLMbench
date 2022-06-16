@@ -166,6 +166,8 @@ class Scene(object):
         if self._active_task is not None and self._has_init_task:
             self._active_task.cleanup_()
             self._active_task.restore_state(self._initial_task_state)
+        elif not self._has_init_task:
+            self.init_task()
         self._active_task.set_initial_objects_in_scene()
         if len(self.distractors)!=0:
             for d in self.distractors:
