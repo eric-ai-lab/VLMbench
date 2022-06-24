@@ -1,6 +1,6 @@
 # VLMbench: A Benchmark for Vision-and-Language Manipulation
 
-![task image missing](readme_files/tasks.svg)
+![task image missing](readme_files/teaser.svg)
 
 **VLMbench** is a robotics manipulation benchmark, which contains various language instructions on categorized robotic manipulation tasks. In this work, we aim to fill the blank of the last mile of embodied agents---object manipulation by following human guidance, e.g., “move the red mug next to the box while keeping it upright.” VLMbench is the first benchmark that ***compositional designs*** for vision-and-language reasoning on manipulations and ***categorizes the manipulation tasks*** from the perspectives of task constraints. Meanwhile, we introduce an Automatic Manipulation Solver (**AMSolver**), where modular rule-based task templates are created to automatically generate robot demonstrations with language instructions, consisting of diverse object shapes and appearances, action types, and motion constraints.  [Click here for website and paper.](https://sites.google.com/ucsc.edu/vlmbench/home)
 
