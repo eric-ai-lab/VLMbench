@@ -1,4 +1,4 @@
-# VLMbench: A Benchmark for Vision-and-Language Manipulation
+# VLMbench: A Compositional Benchmark for Vision-and-Language Manipulation
 
 ![task image missing](readme_files/teaser.svg)
 
@@ -24,18 +24,18 @@ mv ./simAddOnScript_PyRep.lua /Path/To/Coppliasim
 
 ## VLMbench Baselines
 
-The precollected dataset can be found at here: [Dataset](https://drive.google.com/drive/folders/1Qx_2_ePIqf_Z6SnpPkocUiPgFeCfePQh?usp=sharing).
+The precollected dataset can be found at here: [Dataset](https://drive.google.com/drive/folders/1Qx_2_ePIqf_Z6SnpPkocUiPgFeCfePQh?usp=sharing). The dataset is under [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
 
 The pretrained models can be found at here: [Model](https://drive.google.com/drive/folders/1yFbWhP2iHQvY04q8LNmrpT6_5ctTcZDk?usp=sharing)
+
+To test pretrained 6D-CLIPort models:
+```bash
+python vlm/scripts/cliport_test.py --data_folder /Path/to/VLMbench/Dataset/test --checkpoints_folder /Path/to/Pretained/Models
+```
 
 To train new 6D-CLIPort models:
 ```bash
 python vlm/scripts/train_baselines.py --data_dir /Path/to/VLMbench/Dataset --train_tasks TASK_NEED_TO_TRAIN
-```
-
-To test pretrained 6D-CLIPort models:
-```bash
-python vlm/scripts/cliport_test.py
 ```
 
 ## Generate Customized Demonstrations
