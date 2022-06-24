@@ -267,7 +267,7 @@ def define_default_args():
 
 if __name__ == '__main__':
     grasp_pose_path = './vlm/grasp_poses/'
-    ply_file = '/home/kz-lab/Documents/research/ravens/ravens/environments/assets/kitting/00.obj'
+    ply_file = None
     args = define_default_args()
     args.input_file = ply_file
     args.output_file = grasp_pose_path + ply_file.split('/')[-1][:-4] + '.pkl'

@@ -265,23 +265,12 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
 
         task_env = amsolver_env.get_task(t)
         task_env.set_variation(my_variation_count)
-        # obs, descriptions = task_env.reset()
-        # print(obs)
 
         variation_path = os.path.join(
             FLAGS.save_path, task_env.get_name(),
             VARIATIONS_FOLDER % my_variation_count)
 
         check_and_make(variation_path)
-
-        # with open(os.path.join(
-        #         variation_path, VARIATION_DESCRIPTIONS), 'wb') as f:
-        #     pickle.dump(descriptions, f)
-
-        # with open(os.path.join(
-        #         variation_path, 'high_level_descriptions.txt'), 'w') as f:
-        #     for item in obs:
-        #         f.write(item+"\n")
 
         episodes_path = os.path.join(variation_path, EPISODES_FOLDER)
         check_and_make(episodes_path)

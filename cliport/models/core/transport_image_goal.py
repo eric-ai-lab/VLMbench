@@ -112,18 +112,5 @@ class TransportImageGoal(nn.Module):
         goal_x_in_logits = goal_logits + in_logits # Mohit: why doesn't multiply work? :(
         goal_x_kernel = goal_crop + kernel_crop
 
-        # TODO(Mohit): Crop after network. Broken for now
-        # in_logits = self.key_resnet(in_tensor)
-        # kernel_nocrop_logits = self.query_resnet(in_tensor)
-        # goal_logits = self.goal_resnet(goal_tensor)
-
-        # goal_x_in_logits = in_logits
-        # goal_x_kernel_logits = goal_logits * kernel_nocrop_logits
-
-        # goal_crop = goal_x_kernel_logits.repeat(self.n_rotations, 1, 1, 1)
-        # goal_crop = self.rotator(goal_crop, pivot=pv)
-        # goal_crop = torch.cat(goal_crop, dim=0)
-        # goal_crop = goal_crop[:, :, pv[0]-hcrop:pv[0]+hcrop, pv[1]-hcrop:pv[1]+hcrop]
-
         return self.correlate(goal_x_in_logits, goal_x_kernel, softmax)
 

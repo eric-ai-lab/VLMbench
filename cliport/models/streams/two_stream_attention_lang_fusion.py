@@ -36,20 +36,16 @@ class TwoStreamAttentionLangFusion(Attention):
         padding = np.zeros((4,2),dtype=int)
         padding[1:,:] = self.padding
         in_data = np.pad(inp_img, padding, mode='constant')
-        # in_shape = (1,) + in_data.shape
-        # in_data = in_data.reshape(in_shape)
         in_tens = torch.from_numpy(in_data).to(dtype=torch.float, device=self.device)  # [B W H 6]
 
         # Rotation pivot.
         pv = np.zeros((in_data.shape[0], 2))
         pv[:, 0] = in_data.shape[1]//2
         pv[:, 1] = in_data.shape[2]//2
-        # pv = np.array([in_data.shape[1:3]]) // 2
 
         # Rotate input.
         in_tens = in_tens.permute(0, 3, 1, 2).contiguous()  # [B 6 W H]
         in_tens = in_tens.unsqueeze(1).repeat(1, self.n_rotations, 1, 1, 1)
-        # in_tens = in_tens.repeat(self.n_rotations, 1, 1, 1)
         in_tens = self.rotator(in_tens, pivot=pv)
 
         # Forward pass.
@@ -71,15 +67,8 @@ class TwoStreamAttentionLangFusion(Attention):
         b = logits.shape[0]
         output = logits.reshape(b, -1)
         if softmax:
-            # b, w, h, n = output.shape
-            # output = output.reshape(b, w*h, n)
             output = F.softmax(output, dim=-1)
             output = output.reshape(logits.shape)
-            # output = output.reshape(b, w, h, n)
-        # output = logits.reshape(1, np.prod(logits.shape))
-        # if softmax:
-            # output = F.softmax(output, dim=-1)
-            # output = output.reshape(logits.shape[1:])
         return output
 
 

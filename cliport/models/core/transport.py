@@ -88,16 +88,6 @@ class Transport(nn.Module):
 
         logits, kernel = self.transport(in_tensor, crop)
 
-        # TODO(Mohit): Crop after network. Broken for now.
-        # in_tensor = in_tensor.permute(0, 3, 1, 2)
-        # logits, crop = self.transport(in_tensor)
-        # crop = crop.repeat(self.n_rotations, 1, 1, 1)
-        # crop = self.rotator(crop, pivot=pv)
-        # crop = torch.cat(crop, dim=0)
-
-        # kernel = crop[:, :, pv[0]-hcrop:pv[0]+hcrop, pv[1]-hcrop:pv[1]+hcrop]
-        # kernel = crop[:, :, p[0]:(p[0] + self.crop_size), p[1]:(p[1] + self.crop_size)]
-
         return self.correlate(logits, kernel, softmax)
 
 class Transport6Dof(Transport):
@@ -144,15 +134,6 @@ class Transport6Dof(Transport):
 
         logits, kernels = self.transport(in_tensor, crop)
         kernels = kernels.reshape(torch.Size([-1, self.n_rotations])+kernels.shape[1:])
-        # TODO(Mohit): Crop after network. Broken for now.
-        # in_tensor = in_tensor.permute(0, 3, 1, 2)
-        # logits, crop = self.transport(in_tensor)
-        # crop = crop.repeat(self.n_rotations, 1, 1, 1)
-        # crop = self.rotator(crop, pivot=pv)
-        # crop = torch.cat(crop, dim=0)
-
-        # kernel = crop[:, :, pv[0]-hcrop:pv[0]+hcrop, pv[1]-hcrop:pv[1]+hcrop]
-        # kernel = crop[:, :, p[0]:(p[0] + self.crop_size), p[1]:(p[1] + self.crop_size)]
 
         return self.correlate(logits, kernels, softmax)
     
@@ -176,11 +157,6 @@ class Transport6Dof(Transport):
         else:
             dim = self.kernel_dim//3
             for i in range(in0.shape[0]):
-                # output = F.conv2d(in0[i:i+1, :dim], in1[i, :, :dim], padding=(self.pad_size, self.pad_size))
-                # output = F.interpolate(output, size=(in0.shape[-2], in0.shape[-1]), mode='bilinear')
-                # # output = in0[i:i+1]
-                # output = output[:,:,self.pad_size:-self.pad_size, self.pad_size:-self.pad_size]
-                # outputs.append(output)
 
                 z_tensor = F.conv2d(in0[i:i+1, :dim], in1[i, :, :dim], padding=(self.pad_size, self.pad_size))
                 z_tensor = F.interpolate(z_tensor, size=(in0.shape[-2], in0.shape[-1]), mode='bilinear')
@@ -207,11 +183,4 @@ class Transport6Dof(Transport):
                     output = output[:,:,self.pad_size:-self.pad_size, self.pad_size:-self.pad_size]
                     outputs.append(output)
                 outputs = torch.cat(outputs, dim=0)
-            # outputs = torch.cat(outputs, dim=0)
-            # if softmax:
-                # outputs_shape = outputs.shape
-                # outputs = outputs.reshape((1, np.prod(outputs.shape)))
-                # outputs = F.softmax(outputs, dim=-1)
-                # outputs = outputs.reshape(outputs_shape[1:])
-                # z_tensors = z_tensors[0]
         return outputs, z_tensors, roll_tensors, pitch_tensors

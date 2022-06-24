@@ -226,16 +226,10 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-        # val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset)
-        val_sampler = None
     else:
         train_sampler = None
-        val_sampler = None
+    val_sampler = None
 
-    # train_loader = torch.utils.data.DataLoader(
-    #     train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-    #     num_workers=args.workers, pin_memory=args.pin_memory, sampler=train_sampler, 
-    #     drop_last=True, collate_fn = collate_fn, persistent_workers=True)
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
         num_workers=args.workers, pin_memory=args.pin_memory, sampler=train_sampler, 
@@ -262,11 +256,6 @@ def main_worker(gpu, ngpus_per_node, args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-
-        # if epoch==32:
-        #     for parameter in model.parameters():
-        #         parameter.requires_grad = True
-        #     optimizer = torch.optim.Adam(model.parameters(), args.lr*0.1)
 
         # train for one epoch
         train(train_loader, model, optimizer, scheduler, epoch, losses, args, timer, loss_func)
@@ -504,30 +493,3 @@ if __name__=="__main__":
     if not args.preprocess:
         print('Not useing preprocess data.')
     main(args)
-
-"""
-import cv2
-i = 1
-img_v = np.uint8(img[i, ..., :3])
-center_coordinates = (p0[i,1], p0[i,0])
-# Radius of circle
-radius = 10
-
-# Blue color in BGR
-color = (0, 255, 255)
-
-# Line thickness of 2 px
-thickness = 2
-
-# Using cv2.circle() method
-# Draw a circle with blue line borders of thickness of 2 px
-img_v = cv2.circle(img_v, center_coordinates, radius, color, thickness)
-center_coordinates = (p1[i,1], p1[i,0])
-color = (255, 255, 0)
-thickness = 3
-img_v = cv2.circle(img_v, center_coordinates, radius, color, thickness)
-
-# Using cv2.imshow() method 
-# Displaying the image 
-cv2.imwrite('/home/kaizhi/Documents/vlmbench/results/input_img.png', cv2.cvtColor(np.uint8(img_v),cv2.COLOR_RGB2BGR))
-"""
