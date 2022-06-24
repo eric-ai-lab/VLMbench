@@ -11,6 +11,7 @@ Users can use AMSolver to run the current tasks in the VLMbench or build new tas
 
 ```bash
 pip install -r requirements.txt
+pip install -r cliport/requirements.txt
 pip install .
 ```
 
