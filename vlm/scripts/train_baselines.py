@@ -450,9 +450,9 @@ if __name__=="__main__":
     
     parser = argparse.ArgumentParser(description='')
     #dataset
-    parser.add_argument('--data_dir', type=str, default='../vlmbench')
+    parser.add_argument('--data_dir', type=str)
     parser.add_argument('--setd', type=str, default='train')
-    parser.add_argument('--img_size',nargs='+', type=int, default=[224, 224])
+    parser.add_argument('--img_size',nargs='+', type=int, default=[360, 360])
     parser.add_argument('--batch_size', type=int, default=8, metavar='N',
                         help='input batch size for training (default: 8)')
     parser.add_argument('--workers', type=int, default=32)
@@ -480,7 +480,7 @@ if __name__=="__main__":
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('--resume', default= None, type=str,
                         help='resume training from checkpoint-path/model-best.pth')
-    parser.add_argument('--baseline_mode', type=str, default='lorl')
+    parser.add_argument('--baseline_mode', type=str, default='cliport_6dof')
     parser.add_argument('--wandb_entity', type=str, default=None, help="visualize the training. Account Name")
     parser.add_argument('--wandb_project', type=str, default=None,  help="visualize the training. Project Name")
 

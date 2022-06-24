@@ -26,7 +26,7 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '/data1/zhengkz/rlbench_data/train',
+                    './rlbench_data/train',
                     'Where to save the demos.')
 flags.DEFINE_list('tasks', [
                             'drop_pen_color', 'drop_pen_relative', 'drop_pen_size',
@@ -36,7 +36,7 @@ flags.DEFINE_list('tasks', [
                             'stack_cubes_color', 'stack_cubes_size',
                             'stack_cubes_relative', 'stack_cubes_shape',
                             'place_into_shape_sorter_color', 'place_into_shape_sorter_shape', 'place_into_shape_sorter_relative',
-                            'open_door', 'open_drawer', 'open_drawer_cabinet',
+                            'open_drawer',
                             'open_door_complex'
                             ],
                   'The tasks to collect. If empty, all tasks are collected.')
@@ -45,7 +45,7 @@ flags.DEFINE_list('image_size', [360, 360],
 flags.DEFINE_enum('renderer',  'opengl', ['opengl', 'opengl3'],
                   'The renderer to use. opengl does not include shadows, '
                   'but is faster.')
-flags.DEFINE_integer('processes', 16,
+flags.DEFINE_integer('processes', 8,
                      'The number of parallel processes during collection.')
 flags.DEFINE_integer('episodes_per_task', 5,
                      'The number of episodes to collect per task.')

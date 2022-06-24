@@ -130,7 +130,7 @@ class CliportAgent(object):
         with torch.no_grad():
             z_max = 1.2
             if 'door' in self.args.task or 'drawer' in self.args.task:
-                z_max = 1.2
+                z_max = 1.5
             inp_img, lang_goal, p0, output_dict = self.agent.act(obs, [lang], bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, z_max]]), pixel_size=5.625e-3)
         action = np.zeros(8)
         action[:7] = gt_pose
@@ -184,11 +184,11 @@ def set_seed(seed, torch=False):
 def add_argments():
     parser = argparse.ArgumentParser(description='')
     #dataset
-    parser.add_argument('--data_folder', type=str, default="/data1/zhengkz/rlbench_data/test")
+    parser.add_argument('--data_folder', type=str)
     parser.add_argument('--setd', type=str, default="seen")
-    parser.add_argument('--checkpoints_folder', type=str, default="/data1/zhengkz/weights_160_128")
+    parser.add_argument('--checkpoints_folder', type=str)
     parser.add_argument('--model_name', type=str, default="cliport_6dof")
-    parser.add_argument('--img_size',nargs='+', type=int, default=[224,224])
+    parser.add_argument('--img_size',nargs='+', type=int, default=[360,360])
     parser.add_argument('--gpu', type=int, default=7)
     parser.add_argument('--task', type=str, default=None)
     parser.add_argument('--replay', type=lambda x:bool(strtobool(x)), default=False)

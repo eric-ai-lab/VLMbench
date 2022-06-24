@@ -27,7 +27,7 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    '/data1/zhengkz/rlbench_data/test/seen_new',
+                    './rlbench_data/test/seen_new',
                     'Where to save the demos.')
 flags.DEFINE_list('tasks', [
                             'place_into_shape_sorter_color',
@@ -38,9 +38,8 @@ flags.DEFINE_list('tasks', [
                             'pick_cube_color', 'pick_cube_relative', 'pick_cube_shape', 'pick_cube_size',
                             'stack_cubes_color', 'stack_cubes_size',
                             'stack_cubes_relative', 'stack_cubes_shape',
-                            # 'open_door_complex',
-                            # 'open_drawer'
-                            # 'open_door', 'open_drawer_cabinet'
+                            'open_door_complex',
+                            'open_drawer'
 ],
                   'The tasks to collect. If empty, all tasks are collected.')
 flags.DEFINE_list('image_size', [360, 360],
