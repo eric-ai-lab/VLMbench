@@ -156,18 +156,19 @@ def main_worker(gpu, ngpus_per_node, args):
                 'batchnorm':False
             }
         }
+    device = torch.device(args.gpu)
     if args.baseline_mode == 'cliport_6dof':
-        model = TwoStreamClipLingUNetLatTransporterAgent(name="cliport_6dof",device=args.gpu, cfg=cfg, z_roll_pitch=True)
+        model = TwoStreamClipLingUNetLatTransporterAgent(name="cliport_6dof",device=device, cfg=cfg, z_roll_pitch=True)
     elif args.baseline_mode == 'cliport_joint':
-        model = TwoStreamClipLingUNetLatTransporterAgent_IGNORE(name="cliport_joint",device=args.gpu, cfg=cfg, z_roll_pitch=True)
+        model = TwoStreamClipLingUNetLatTransporterAgent_IGNORE(name="cliport_joint",device=device, cfg=cfg, z_roll_pitch=True)
     elif args.baseline_mode == 'transporter_6dof':
-        model = TransporterLangAgent(name=args.baseline_mode,device=args.gpu, cfg=cfg)
+        model = TransporterLangAgent(name=args.baseline_mode,device=device, cfg=cfg)
     elif args.baseline_mode == 'imglang_6dof':
-        model = ImgLangAgent_6Dof(name=args.baseline_mode,device=args.gpu, cfg=cfg)
+        model = ImgLangAgent_6Dof(name=args.baseline_mode,device=device, cfg=cfg)
     elif args.baseline_mode == 'depthlang_6dof':
-        model = DepthLangAgent_6Dof(name=args.baseline_mode,device=args.gpu, cfg=cfg)
+        model = DepthLangAgent_6Dof(name=args.baseline_mode,device=device, cfg=cfg)
     elif args.baseline_mode == 'blindlang_6dof':
-        model = BlindLangAgent_6Dof(name=args.baseline_mode,device=args.gpu, cfg=cfg)
+        model = BlindLangAgent_6Dof(name=args.baseline_mode,device=device, cfg=cfg)
 
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor

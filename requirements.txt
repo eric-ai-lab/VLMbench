@@ -4,7 +4,6 @@ pyquaternion
 html-testRunner
 setuptools
 natsort
-torch>=1.10.0
-opencv-python==4.1.0
+opencv-python==4.2.0.32
 scipy
 open3d

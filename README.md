@@ -12,7 +12,7 @@ Users can use AMSolver to run the current tasks in the VLMbench or build new tas
 ```bash
 pip install -r requirements.txt
 pip install -r cliport/requirements.txt
-pip install .
+pip install -e .
 ```
 
 Then, copy the simAddOnScript_PyRep.lua in current folder into the Coppliasim folder:
@@ -31,7 +31,7 @@ The pretrained models can be found at here: [Model](https://drive.google.com/dri
 
 To test pretrained 6D-CLIPort models:
 ```bash
-python vlm/scripts/cliport_test.py --data_folder /Path/to/VLMbench/Dataset/test --checkpoints_folder /Path/to/Pretained/Models
+python vlm/scripts/cliport_test.py --task TASK_TO_TEST --data_folder /Path/to/VLMbench/Dataset/test --checkpoints_folder /Path/to/Pretained/Models
 ```
 
 To train new 6D-CLIPort models:

@@ -5,7 +5,7 @@ import os
 import random
 import cv2
 from cliport.agent import TwoStreamClipLingUNetLatTransporterAgent, TransporterLangAgent, ImgLangAgent_6Dof, DepthLangAgent_6Dof, BlindLangAgent_6Dof,\
-    TwoStreamClipLingUNetLatTransporterAgent_IGNORE
+     TwoStreamClipLingUNetLatTransporterJointAgent
 from amsolver.environment import Environment
 from amsolver.action_modes import ArmActionMode, ActionMode
 from amsolver.observation_config import ObservationConfig
@@ -69,7 +69,7 @@ class CliportAgent(object):
         if model_name=="cliport_6dof":
             self.agent = TwoStreamClipLingUNetLatTransporterAgent(name='agent', device=device, cfg=cfg, z_roll_pitch=z_roll_pitch).to(device)
         elif model_name == 'cliport_joint':
-            self.agent = TwoStreamClipLingUNetLatTransporterAgent_IGNORE(name="cliport_joint",device=device, cfg=cfg, z_roll_pitch=True).to(device)
+            self.agent = TwoStreamClipLingUNetLatTransporterJointAgent(name="cliport_joint",device=device, cfg=cfg, z_roll_pitch=True).to(device)
         elif model_name == "transporter_6dof":
             self.agent = TransporterLangAgent(name='agent',device=device, cfg=cfg).to(device)
         elif model_name == "imglang_6dof":

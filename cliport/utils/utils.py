@@ -802,7 +802,7 @@ def mlp(input_dim, hidden_dim, output_dim, hidden_depth, output_mod=None, device
         mods.append(output_mod)
     trunk = nn.Sequential(*mods)
     trunk.apply(weight_init)
-    return trunk.cuda(device)
+    return trunk.to(device)
 
 def weight_init(m):
     """Custom weight init for Conv2D and Linear layers."""
