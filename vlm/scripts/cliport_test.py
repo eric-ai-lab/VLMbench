@@ -201,6 +201,8 @@ def add_argments():
     return args
 
 if __name__=="__main__":
+    if not os.path.exists('./results'):
+        os.makedirs('./results')
     args = add_argments()
     set_seed(0)
     obs_config = ObservationConfig()

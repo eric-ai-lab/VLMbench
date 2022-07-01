@@ -19,9 +19,22 @@ Then, copy the simAddOnScript_PyRep.lua in current folder into the Coppliasim fo
 ```bash
 mv ./simAddOnScript_PyRep.lua /Path/To/Coppliasim
 ```
-<!-- (meshlab for import new model; copy new simAddOnScript_PyRep.lua to Coppeliasim) -->
 
-<!-- In the vlm folder, we have predefined some task categories and instance tasks for VLMbench. If you want to customize your own task, the scripts in the tools folder can be helpful. -->
+## Running in headless server
+In order to render observations in headless servers, users need to open the Xorg. First, ensure that the Nvidia driver is appropriately installed. Then, running the following commands:
+
+```bash
+screen
+python ./startx.py 0 #The id of DISPLAY
+```
+
+Exit the ```screen``` session (```CTRL+A, D```). Any other commands should be run in the different sessions/terminals.
+
+Now, you should find that the X servers are opened on each GPU. To render the application with the first GPU, you should add the following command before running other python codes:
+
+```bash
+export DISPLAY=:0.0 #Keep the first number as same as the argument of startx
+```
 
 ## VLMbench Baselines
 
