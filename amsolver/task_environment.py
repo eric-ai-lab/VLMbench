@@ -245,6 +245,7 @@ class TaskEnvironment(object):
 
         # Discretize the gripper action
         open_condition = all(x > 0.9 for x in self._robot.gripper.get_open_amount())
+        open_condition &= (len(self._robot.gripper.get_grasped_objects())==0)
         current_ee = 1.0 if open_condition else 0.0
 
         if ee_action > 0.5:

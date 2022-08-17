@@ -4,8 +4,7 @@ from pathlib import Path
 import os
 import random
 import cv2
-from cliport.agent import TwoStreamClipLingUNetLatTransporterAgent, TransporterLangAgent, ImgLangAgent_6Dof, DepthLangAgent_6Dof, BlindLangAgent_6Dof,\
-     TwoStreamClipLingUNetLatTransporterJointAgent
+from cliport.agent import ImgDepthAgent_6dof, TwoStreamClipLingUNetLatTransporterAgent, BlindLangAgent_6Dof
 from amsolver.environment import Environment
 from amsolver.action_modes import ArmActionMode, ActionMode
 from amsolver.observation_config import ObservationConfig
@@ -68,14 +67,8 @@ class CliportAgent(object):
         device = torch.device(device_id)
         if model_name=="cliport_6dof":
             self.agent = TwoStreamClipLingUNetLatTransporterAgent(name='agent', device=device, cfg=cfg, z_roll_pitch=z_roll_pitch).to(device)
-        elif model_name == 'cliport_joint':
-            self.agent = TwoStreamClipLingUNetLatTransporterJointAgent(name="cliport_joint",device=device, cfg=cfg, z_roll_pitch=True).to(device)
-        elif model_name == "transporter_6dof":
-            self.agent = TransporterLangAgent(name='agent',device=device, cfg=cfg).to(device)
-        elif model_name == "imglang_6dof":
-            self.agent = ImgLangAgent_6Dof(name='agent',device=device, cfg=cfg).to(device)
-        elif model_name == 'depthlang_6dof':
-            self.agent = DepthLangAgent_6Dof(name='agent',device=device, cfg=cfg).to(device)
+        elif model_name == "imgdepth_6dof":
+            self.agent = ImgDepthAgent_6dof(name='agent',device=device, cfg=cfg).to(device)
         elif model_name == 'blindlang_6dof':
             self.agent = BlindLangAgent_6Dof(name='agent',device=device, cfg=cfg).to(device)
         self.model_name = model_name
@@ -118,19 +111,15 @@ class CliportAgent(object):
                     gripper_control = focus_waypoint_info["gripper_control"][1]
                 gt_pose = focus_waypoint_info['pose'][0]
                 point_list.append(focus_wp)
-                # if "grasp" in waypoint_type:
-                #     continue
                 step_list.append([focus_wp, focus_waypoint_info['low_level_descriptions'], attention_id, gripper_control, focus_waypoint_info["waypoint_type"], related_rotation, gt_pose])
         return step_list
     
     def act(self, step_list, step_id, obs, lang, use_gt_xy=False,use_gt_z=False, use_gt_theta=False, use_gt_roll_pitch=False):
         current_waypoint,_, attention_id, gripper_control, waypoint_type, related_rotation, gt_pose  = step_list[step_id]
-        if self.model_name =="transporter_6dof":
-            lang = f"Step {num2words(step_id)}."
         with torch.no_grad():
             z_max = 1.2
             if 'door' in self.args.task or 'drawer' in self.args.task:
-                z_max = 1.5
+                z_max = 1.8
             inp_img, lang_goal, p0, output_dict = self.agent.act(obs, [lang], bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, z_max]]), pixel_size=5.625e-3)
         action = np.zeros(8)
         action[:7] = gt_pose
@@ -189,7 +178,7 @@ def add_argments():
     parser.add_argument('--checkpoints_folder', type=str)
     parser.add_argument('--model_name', type=str, default="cliport_6dof")
     parser.add_argument('--img_size',nargs='+', type=int, default=[360,360])
-    parser.add_argument('--gpu', type=int, default=7)
+    parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--task', type=str, default=None)
     parser.add_argument('--replay', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--relative', type=lambda x:bool(strtobool(x)), default=False)
@@ -197,6 +186,8 @@ def add_argments():
     parser.add_argument('--add_low_lang', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--ignore_collision', type=lambda x:bool(strtobool(x)), default=False)
     parser.add_argument('--goal_conditioned', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--wandb_entity', type=str, default=None, help="visualize the test results. Account Name")
+    parser.add_argument('--wandb_project', type=str, default=None,  help="visualize the test results. Project Name")
     args = parser.parse_args()
     return args
 
@@ -204,6 +195,8 @@ if __name__=="__main__":
     if not os.path.exists('./results'):
         os.makedirs('./results')
     args = add_argments()
+    if args.wandb_entity is not None:
+        import wandb
     set_seed(0)
     obs_config = ObservationConfig()
     obs_config.set_all(True)
@@ -240,18 +233,19 @@ if __name__=="__main__":
         task_files = ['pick_cube_shape', 'pick_cube_relative', 'pick_cube_color', 'pick_cube_size']
     elif args.task == 'stack':
         task_files = ['stack_cubes_color', 'stack_cubes_relative', 'stack_cubes_shape', 'stack_cubes_size']
-    elif args.task == 'place':
+    elif args.task == 'shape_sorter':
         need_pre_move = True
-        # args.ignore_collision = True
+        args.ignore_collision = True
         task_files = ['place_into_shape_sorter_color', 'place_into_shape_sorter_relative', 'place_into_shape_sorter_shape']
     elif args.task == 'wipe':
-        task_files = ['wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
+        args.ignore_collision = True
+        task_files = ['wipe_table_shape', 'wipe_table_color', 'wipe_table_relative', 'wipe_table_size', 'wipe_table_direction']
     elif args.task == 'pour':
         task_files = ['pour_demo_color', 'pour_demo_relative', 'pour_demo_size']
     elif args.task == 'drawer':
         args.ignore_collision = True
+        args.renew_obs = False
         need_post_grap=False
-        # task_files = ['open_drawer', 'open_drawer_cabinet']
         task_files = ['open_drawer']
     elif args.task == 'door':
         args.ignore_collision = True
@@ -261,12 +255,13 @@ if __name__=="__main__":
         args.ignore_collision = True
         need_post_grap=False
         task_files = ['open_door_complex']
-
+    else:
+        task_files = [args.task]
     if args.ignore_collision:
         action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME)
     else:
         action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN_WORLD_FRAME_WITH_COLLISION_CHECK)
-    env = Environment(action_mode, obs_config=obs_config, headless=True)
+    env = Environment(action_mode, obs_config=obs_config, headless=True) # set headless=False, if user want to visualize the simulator
     env.launch()
 
     train_tasks = [task_file_to_task_class(t, parent_folder = 'vlm') for t in task_files]
@@ -280,11 +275,11 @@ if __name__=="__main__":
         if args.add_low_lang:
             checkpoint += '_low'
         checkpoint += '_best.pth'
-        # checkpoint = "/data1/zhengkz/new_weights/conv_checkpoint_cliport_6dof_stack_best_norenew_low.pth"
+
         agent = CliportAgent(args.model_name, device_id=args.gpu,z_roll_pitch=True, checkpoint=checkpoint, args=args)
     else:
         agent = ReplayAgent()
-    output_file_name = f"./results/160_{args.task}_{args.setd}"
+    output_file_name = f"./results/{args.model_name}_{args.task}_{args.setd}"
     if args.goal_conditioned:
         output_file_name += "_goalcondition"
     if args.ignore_collision:
@@ -292,6 +287,10 @@ if __name__=="__main__":
     output_file_name += ".txt"
     file = open(output_file_name, "w")
     for i, task_to_train in enumerate(train_tasks):
+        if args.wandb_entity is not None:
+            run_name = f'{args.model_name}_{task_files[i]}_{args.setd}_{args.goal_conditioned}'
+            wandb.init(project=args.wandb_project, entity=args.wandb_entity, name=run_name, group=args.model_name)
+            wandb.config.update(args)
         e_path = load_test_config(data_folder, task_files[i])
         success_times = 0
         grasp_success_times = 0
@@ -328,16 +327,11 @@ if __name__=="__main__":
                     if distance < 0.2:
                         target_grasp_obj_name = target_name
             except:
-                print("need re-generate.")
+                print(f"need re-generate: {e}")
+                continue
             step_list = CliportAgent.generate_action_list(waypoints_info, args)
             action_list = []
             collision_checking_list = []
-            """
-            demos = get_stored_demos(1, False, "../vlmbench/train/", 1, 
-                                                'wipe_table_color', obs_config, 'episode0', False)
-            lang = demos[0].high_level_instructions[0]+f" Step {num2words(i)}."
-            agent.act(step_list, i, demos[0]._observations[0], lang, use_gt_z= True, use_gt_theta= False)
-            """
             for i, sub_step in enumerate(step_list):
                 lang = high_descriptions+f" Step {num2words(i)}."
                 if args.add_low_lang:
@@ -390,18 +384,6 @@ if __name__=="__main__":
                         print(e)
                         break
             if not renew_obs and len(action_list):
-                # pre_grasp = waypoints_info['waypoint0']['pose'][0]
-                # grasp = waypoints_info['waypoint1']['pose'][0]
-                # post_grasp = waypoints_info['waypoint2']['pose'][0]
-                # action0 = np.zeros(8)
-                # action1 = np.zeros(8)
-                # action2 = np.zeros(8)
-                # action0[:7] = pre_grasp
-                # action0[7] = 1
-                # action1[:7] = grasp
-                # action2[:7] = post_grasp
-                # action_list = [action0, action1, action2] + action_list
-                # collision_checking_list = [True, False, False] + collision_checking_list
                 try:
                     for action, collision_checking in zip(action_list,collision_checking_list):
                         obs, reward, terminate = task.step(action, collision_checking, recorder = recorder, use_auto_move=True, need_grasp_obj = target_grasp_obj_name)
@@ -417,5 +399,9 @@ if __name__=="__main__":
             print(f"{task.get_name()}: success {success_times} times in {all_time} steps!")
             print(f"{task.get_name()}: grasp success {grasp_success_times} times in {all_time} steps!")
             file.write(f"{task.get_name()}:grasp success: {grasp_success_times}, success {success_times}, toal {all_time} steps\n")
+            if args.wandb_entity is not None:
+                wandb.log({"success":success_times, "grasp_success":grasp_success_times}, step=all_time)
+        if args.wandb_entity is not None:
+            wandb.finish()
     file.close()
     env.shutdown()

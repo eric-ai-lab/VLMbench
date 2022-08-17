@@ -40,7 +40,7 @@
    "graspable": false,
    "local_grasp_pose_path": "drawer1_top.pkl",
    "property": {
-    "shape": "drawer",
+    "shape": "top drawer",
     "color": null,
     "size": null,
     "relative_pos": null
@@ -52,7 +52,7 @@
    "graspable": false,
    "local_grasp_pose_path": "drawer1_top.pkl",
    "property": {
-    "shape": "drawer",
+    "shape": "middle drawer",
     "color": null,
     "size": null,
     "relative_pos": null
@@ -64,7 +64,7 @@
    "graspable": false,
    "local_grasp_pose_path": "drawer1_top.pkl",
    "property": {
-    "shape": "drawer",
+    "shape": "bottom drawer",
     "color": null,
     "size": null,
     "relative_pos": null

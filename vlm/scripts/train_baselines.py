@@ -20,7 +20,7 @@ from os.path import join, dirname, abspath, isfile
 CURRENT_DIR = dirname(abspath(__file__))
 sys.path.insert(0, join(CURRENT_DIR, '..'))  # Use local amsolver rather than installed
 
-from cliport.agent import BlindLangAgent_6Dof, DepthLangAgent_6Dof, TransporterLangAgent, \
+from cliport.agent import BlindLangAgent_6Dof, DepthLangAgent_6Dof, ImgDepthAgent_6dof, TransporterLangAgent, \
         TwoStreamClipLingUNetLatTransporterAgent, ImgLangAgent_6Dof, TwoStreamClipLingUNetLatTransporterJointAgent, TwoStreamClipLingUNetLatTransporterAgent_IGNORE
 warnings.filterwarnings('ignore')
 import torch.nn.functional as F
@@ -150,7 +150,6 @@ def main_worker(gpu, ngpus_per_node, args):
             'train':{
                 'attn_stream_fusion_type': 'add',
                 'trans_stream_fusion_type': 'conv',
-                # 'trans_stream_fusion_type': 'add',
                 'lang_fusion_type': 'mult',
                 'n_rotations':36,
                 'batchnorm':False
@@ -159,14 +158,8 @@ def main_worker(gpu, ngpus_per_node, args):
     device = torch.device(args.gpu)
     if args.baseline_mode == 'cliport_6dof':
         model = TwoStreamClipLingUNetLatTransporterAgent(name="cliport_6dof",device=device, cfg=cfg, z_roll_pitch=True)
-    elif args.baseline_mode == 'cliport_joint':
-        model = TwoStreamClipLingUNetLatTransporterAgent_IGNORE(name="cliport_joint",device=device, cfg=cfg, z_roll_pitch=True)
-    elif args.baseline_mode == 'transporter_6dof':
-        model = TransporterLangAgent(name=args.baseline_mode,device=device, cfg=cfg)
-    elif args.baseline_mode == 'imglang_6dof':
-        model = ImgLangAgent_6Dof(name=args.baseline_mode,device=device, cfg=cfg)
-    elif args.baseline_mode == 'depthlang_6dof':
-        model = DepthLangAgent_6Dof(name=args.baseline_mode,device=device, cfg=cfg)
+    elif args.baseline_mode == 'imgdepth_6dof':
+        model = ImgDepthAgent_6dof(name=args.baseline_mode,device=device, cfg=cfg)
     elif args.baseline_mode == 'blindlang_6dof':
         model = BlindLangAgent_6Dof(name=args.baseline_mode,device=device, cfg=cfg)
 

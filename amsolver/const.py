@@ -1,21 +1,4 @@
 #Copy From the rlbench: https://github.com/stepjam/RLBench
-#seen
-# seen_colors = [
-#     ('red', (1.0, 0.0, 0.0)),
-#     ('maroon', (0.5, 0.0, 0.0)),
-#     ('lime', (0.0, 1.0, 0.0)),
-#     ('green', (0.0, 0.5, 0.0)),
-#     ('blue', (0.0, 0.0, 1.0)),
-#     ('navy', (0.0, 0.0, 0.5)),
-#     ('yellow', (1.0, 1.0, 0.0)),
-#     ('cyan', (0.0, 1.0, 1.0)),
-#     ('magenta', (1.0, 0.0, 1.0)),
-#     ('silver', (0.75, 0.75, 0.75)),
-#     ('gray', (0.5, 0.5, 0.5)),
-#     ('orange', (1.0, 0.5, 0.0)),
-#     ('black', (0.0, 0.0, 0.0)),
-#     ('white', (1.0, 1.0, 1.0)),
-# ]
 
 seen_colors = [
     ('red', (1.0, 0.0, 0.0)),
@@ -47,14 +30,7 @@ unseen_colors = [
     ('chocolate', (0.8, 0.4, 0.12)),
     ('coral', (1.0, 0.5, 0.32))
 ]
-# unseen_colors = [
-#     ('olive', (0.5, 0.5, 0.0)),
-#     ('purple', (0.5, 0.0, 0.5)),
-#     ('teal', (0, 0.5, 0.5)),
-#     ('azure', (0.0, 0.5, 1.0)),
-#     ('violet', (0.5, 0.0, 1.0)),
-#     ('rose', (1.0, 0.0, 0.5)),
-# ]
+
 #seen objects
 seen_object_shapes = {
     "star":{
@@ -269,3 +245,16 @@ cabinet_list = seen_cabinet_list
 door_list = seen_door_list
 mug_list = seen_mug_list
 complex_door_list = seen_complex_door_list
+
+"""
+if users want to collect unseen data, please comment the above lines and uncomment the below lines. 
+colors = unseen_colors
+object_shapes = unseen_object_shapes
+planes = unseen_planes
+sorter_objects = unseen_sorter_objects
+drawer_list = unseen_drawer_list
+cabinet_list = unseen_cabinet_list
+door_list = unseen_door_list
+mug_list = unseen_mug_list
+complex_door_list = unseen_complex_door_list
+"""

@@ -15,16 +15,7 @@ from cliport.models.core.attention import Attention
 from cliport.models.core.transport import Transport, Transport6Dof
 from cliport.models.streams.two_stream_attention_lang_fusion import TwoStreamAttentionLangFusion, TwoStreamAttentionLangFusionLat
 from cliport.models.streams.two_stream_transport_lang_fusion import TwoStreamTransportLangFusion, TwoStreamTransportLangFusionLat
-"""
-cfg = {
-    'train':{
-        'attn_stream_fusion_type': 'add',
-        'trans_stream_fusion_type': 'conv'
-        'lang_fusion_type': 'mult',
-        'n_rotations':36
-    }
-}
-"""
+
 class TransporterAgent(nn.Module):
     def __init__(self, name, device, cfg):
         super().__init__()
@@ -254,90 +245,6 @@ class TransporterAgent(nn.Module):
             val_trans_theta_err=err1['theta'],
         )
 
-    def training_epoch_end(self, all_outputs):
-        super().training_epoch_end(all_outputs)
-        utils.set_seed(self.trainer.current_epoch+1)
-
-    def validation_epoch_end(self, all_outputs):
-        mean_val_total_loss = np.mean([v['val_loss'].item() for v in all_outputs])
-        mean_val_loss0 = np.mean([v['val_loss0'].item() for v in all_outputs])
-        mean_val_loss1 = np.mean([v['val_loss1'].item() for v in all_outputs])
-        total_attn_dist_err = np.sum([v['val_attn_dist_err'] for v in all_outputs])
-        total_attn_theta_err = np.sum([v['val_attn_theta_err'] for v in all_outputs])
-        total_trans_dist_err = np.sum([v['val_trans_dist_err'] for v in all_outputs])
-        total_trans_theta_err = np.sum([v['val_trans_theta_err'] for v in all_outputs])
-
-        self.log('vl/attn/loss', mean_val_loss0)
-        self.log('vl/trans/loss', mean_val_loss1)
-        self.log('vl/loss', mean_val_total_loss)
-        self.log('vl/total_attn_dist_err', total_attn_dist_err)
-        self.log('vl/total_attn_theta_err', total_attn_theta_err)
-        self.log('vl/total_trans_dist_err', total_trans_dist_err)
-        self.log('vl/total_trans_theta_err', total_trans_theta_err)
-
-        print("\nAttn Err - Dist: {:.2f}, Theta: {:.2f}".format(total_attn_dist_err, total_attn_theta_err))
-        print("Transport Err - Dist: {:.2f}, Theta: {:.2f}".format(total_trans_dist_err, total_trans_theta_err))
-
-        return dict(
-            val_loss=mean_val_total_loss,
-            val_loss0=mean_val_loss0,
-            mean_val_loss1=mean_val_loss1,
-            total_attn_dist_err=total_attn_dist_err,
-            total_attn_theta_err=total_attn_theta_err,
-            total_trans_dist_err=total_trans_dist_err,
-            total_trans_theta_err=total_trans_theta_err,
-        )
-
-    def act(self, obs, info=None, goal=None):  # pylint: disable=unused-argument
-        """Run inference and return best action given visual observations."""
-        # Get heightmap from RGB-D images.
-        img = self.test_ds.get_image(obs)
-
-        # Attention model forward pass.
-        pick_inp = {'inp_img': img}
-        pick_conf = self.attn_forward(pick_inp)
-        pick_conf = pick_conf.detach().cpu().numpy()
-        argmax = np.argmax(pick_conf)
-        argmax = np.unravel_index(argmax, shape=pick_conf.shape)
-        p0_pix = argmax[:2]
-        p0_theta = argmax[2] * (2 * np.pi / pick_conf.shape[2])
-
-        # Transport model forward pass.
-        place_inp = {'inp_img': img, 'p0': p0_pix}
-        place_conf = self.trans_forward(place_inp)
-        place_conf = place_conf.permute(1, 2, 0)
-        place_conf = place_conf.detach().cpu().numpy()
-        argmax = np.argmax(place_conf)
-        argmax = np.unravel_index(argmax, shape=place_conf.shape)
-        p1_pix = argmax[:2]
-        p1_theta = argmax[2] * (2 * np.pi / place_conf.shape[2])
-
-        # Pixels to end effector poses.
-        hmap = img[:, :, 3]
-        p0_xyz = utils.pix_to_xyz(p0_pix, hmap, self.bounds, self.pix_size)
-        p1_xyz = utils.pix_to_xyz(p1_pix, hmap, self.bounds, self.pix_size)
-        p0_xyzw = utils.eulerXYZ_to_quatXYZW((0, 0, -p0_theta))
-        p1_xyzw = utils.eulerXYZ_to_quatXYZW((0, 0, -p1_theta))
-
-        return {
-            'pose0': (np.asarray(p0_xyz), np.asarray(p0_xyzw)),
-            'pose1': (np.asarray(p1_xyz), np.asarray(p1_xyzw)),
-            'pick': p0_pix,
-            'place': p1_pix,
-        }
-
-    def optimizer_step(self, current_epoch, batch_nb, optimizer, optimizer_i, second_order_closure, on_tpu, using_native_amp, using_lbfgs):
-        pass
-
-    def configure_optimizers(self):
-        pass
-
-    def train_dataloader(self):
-        return self.train_ds
-
-    def val_dataloader(self):
-        return self.test_ds
-
     def load(self, model_path):
         self.load_state_dict(torch.load(model_path)['state_dict'])
         self.to(device=self.device_type)
@@ -453,7 +360,6 @@ class TransporterAgent_6Dof(TransporterAgent):
         batch_size = inp_img.shape[0]
 
         if not self.original_loss:
-            #for debug
             label_size = inp_img.shape[:3]
             label = np.zeros(label_size)
             # label = np.ones(label_size)*(-1e-6)
@@ -539,8 +445,8 @@ class TransporterAgent_6Dof(TransporterAgent):
             z_i = z_tensors[i, theta_min[i]:theta_max[i], 
                                 u_min[i]:u_max[i], v_min[i]:v_max[i]]
             z_i = self.rpz.z_regressor(z_i.reshape(-1, 1)).mean()
-            z_loss = self.loss_fuc(z_i, z_label[i:i+1])
-            z_losses.append(100*z_loss)
+            z_loss = self.loss_fuc(100*z_i, 100*z_label[i:i+1])
+            z_losses.append(z_loss)
             #roll loss
             roll_i = roll_tensors[i, theta_min[i]:theta_max[i], 
                                 u_min[i]:u_max[i], v_min[i]:v_max[i]]
@@ -621,8 +527,6 @@ class TransporterAgent_6Dof(TransporterAgent):
             place_theta_argmax = np.unravel_index(place_theta_argmax, shape=predict_theta.shape)
             place_theta = place_theta_argmax[0] * angle
         output_dict = {
-            # "pick_xy":pick_xy,
-            # "pick_theta":pick_theta,
             "place_xy":place_xy,
             "place_theta":place_theta
         }
@@ -675,7 +579,7 @@ class TransporterAgent_6Dof(TransporterAgent):
             image_place = cv2.circle(image, center_coordinates, radius, color, thickness)
             cv2.imwrite(f'./results/place_map_{index}.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
         return img, [lang_goal[0]], None, output_dict
-# class LanguageAgent_6Dof(TransporterAgent_6Dof):
+
 class TwoStreamClipLingUNetLatTransporterAgent(TransporterAgent_6Dof):
     def __init__(self, name, device, cfg, z_roll_pitch):
         self.crop_size = 32
@@ -737,262 +641,8 @@ class TwoStreamClipLingUNetLatTransporterAgent(TransporterAgent_6Dof):
 
         output = self.rpz.forward(inp_img, p0, lang_goal, softmax=softmax)
         return output
-class TwoStreamClipLingUNetLatTransporterJointAgent(TransporterAgent_6Dof):
-    def _build_model(self):
-        stream_one_fcn = 'plain_resnet_lat'
-        stream_two_fcn = 'clip_lingunet_lat'
-        self.attention = TwoStreamAttentionLangFusionLat(
-            stream_fcn=(stream_one_fcn, stream_two_fcn),
-            in_shape=self.in_shape,
-            n_rotations=1,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type
-        )
-        self.transport = TwoStreamTransportLangFusionLat(
-            stream_fcn=(stream_one_fcn, stream_two_fcn),
-            in_shape=self.in_shape,
-            n_rotations=self.n_rotations,
-            crop_size=self.crop_size,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-            z_roll_pitch=True,
-            joint_all=True
-        )
 
-    def attn_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
-        lang_goal = inp['lang_goal']
-
-        out = self.attention.forward(inp_img, lang_goal, softmax=softmax)
-        return out
-
-    def trans_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
-        p0 = inp['p0']
-        lang_goal = inp['lang_goal']
-
-        out = self.transport.forward(inp_img, p0, lang_goal, softmax=softmax)
-        return out
-    
-    def forward(self, frame, epoch = None, train_xytheta=True, train_rpz=True):
-        if epoch is not None:
-            utils.set_seed(epoch)
-        loss = {}
-        loss0 = self.attn_training_step(frame)
-        loss1 = self.transport_training_step(frame)
-        loss.update(loss0)
-        loss.update(loss1)
-        return loss
-
-    def transport_criterion(self, inp, output, q, z, rotation):
-        angle = 360//self.n_rotations
-        rotation = np.round(rotation/angle).astype('int16')
-        rotation[rotation<0] += self.n_rotations
-        itheta = rotation[:, 0]
-        xy_theta_tensors, z_tensors, roll_tensors, pitch_tensors = output
-        inp_img = inp['inp_img']
-        batch_size = inp_img.shape[0]
-
-        if not self.original_loss:
-            #for debug
-            label_size = inp_img.shape[:3]
-            label = np.zeros(label_size)
-            # label = np.ones(label_size)*(-1e-6)
-            for i in range(batch_size):
-                label[i, q[i, 0], q[i, 1]] = 1
-            theta_label = np.zeros([batch_size, self.n_rotations])
-            # theta_label = np.ones([batch_size, self.n_rotations])*(-1e-6)
-            for i in range(batch_size):
-                theta_label[i, itheta[i]] = 1
-            theta_label = torch.from_numpy(theta_label).to(dtype=torch.float, device=xy_theta_tensors.device)
-
-            # Get loss.
-            label = label.reshape(label.shape[0], -1)
-            label = torch.from_numpy(label).to(dtype=torch.float, device=xy_theta_tensors.device)
-
-            xy_loss = self.cross_entropy_with_logits(xy_theta_tensors.mean(1).reshape(xy_theta_tensors.shape[0],-1), label, reduction='sum')
-            xy_loss += self.cross_entropy_with_logits(xy_theta_tensors.mean([2,3]), theta_label, reduction='sum')
-        else:
-            label_size = inp_img.shape[:3] + (self.n_rotations,)
-            label = np.zeros(label_size)
-            label = label.transpose((0, 3, 1, 2))
-            for i in range(batch_size):
-                label[i, itheta[i], q[i, 0], q[i, 1]] = 1
-            label = label.reshape(label.shape[0], -1)
-            label = torch.from_numpy(label).to(dtype=torch.float, device=xy_theta_tensors.device)
-            xy_theta_tensors = xy_theta_tensors.reshape(xy_theta_tensors.shape[0],-1)
-            xy_loss = self.cross_entropy_with_logits(xy_theta_tensors, label)
-        loss_dict={"xy_loss": xy_loss}
-
-        u_window = 7
-        v_window = 7
-        theta_window = 1
-        u_min = np.maximum(q[:, 0] - u_window, 0)
-        u_max = np.minimum(q[:, 0] + u_window + 1, z_tensors.shape[2])
-        v_min = np.maximum(q[:, 1] - v_window, 0)
-        v_max = np.minimum(q[:, 1] + v_window + 1, z_tensors.shape[3])
-        theta_min = np.maximum(itheta - theta_window, 0)
-        theta_max = np.minimum(itheta + theta_window + 1, z_tensors.shape[1])
-        z_label = torch.from_numpy(z).to(dtype=torch.float, device=z_tensors.device)
-        roll_label = np.zeros(inp_img.shape[0:1] + (self.transport.n_rotations,))
-        roll_label[range(batch_size), rotation[range(batch_size),2]] = 1
-        roll_label = torch.from_numpy(roll_label).to(dtype=torch.float, device=roll_tensors.device)
-        pitch_label = np.zeros(inp_img.shape[0:1] + (self.transport.n_rotations,))
-        pitch_label[range(batch_size), rotation[range(batch_size),1]] = 1
-        pitch_label = torch.from_numpy(pitch_label).to(dtype=torch.float, device=pitch_tensors.device)
-        z_losses, roll_losses, pitch_losses = [],[],[]
-        for i in range(batch_size):
-            z_i = z_tensors[i, theta_min[i]:theta_max[i], 
-                                u_min[i]:u_max[i], v_min[i]:v_max[i]]
-            z_i = self.transport.z_regressor(z_i.reshape(-1, 1)).mean()
-            z_loss = self.loss_fuc(z_i, z_label[i:i+1])
-            z_losses.append(100*z_loss)
-            #roll loss
-            roll_i = roll_tensors[i, theta_min[i]:theta_max[i], 
-                                u_min[i]:u_max[i], v_min[i]:v_max[i]]
-            roll_i = self.transport.roll_regressor(roll_i.reshape(-1, 1))#.mean(0, keepdims=True)
-            roll_loss = self.cross_entropy_with_logits(roll_i, roll_label[i:i+1], reduction='mean')
-            roll_losses.append(10*roll_loss)
-            #pitch loss
-            pitch_i = pitch_tensors[i, theta_min[i]:theta_max[i], 
-                                u_min[i]:u_max[i], v_min[i]:v_max[i]]
-            pitch_i = self.transport.pitch_regressor(pitch_i.reshape(-1, 1))#.mean(0, keepdims=True)
-            pitch_loss = self.cross_entropy_with_logits(pitch_i, pitch_label[i:i+1], reduction='mean')
-            pitch_losses.append(10*pitch_loss)
-        z_losses = torch.stack(z_losses).mean()
-        roll_losses = torch.stack(roll_losses).mean()
-        pitch_losses = torch.stack(pitch_losses).mean()
-
-        loss_dict.update({
-            "z_loss": z_losses,
-            "roll_loss":roll_losses,
-            "pitch_losses":pitch_losses
-        })
-        return loss_dict
-    def act(self, obs, lang_goal, goal=None, bounds=np.array([[-0.11,0.61],[-0.45, 0.45], [0.7, 1.5]]), pixel_size=5.625e-3, draw_result=True):
-        img = self.obs_preprocess(obs, bounds, pixel_size)
-        # Attention model forward pass.
-        attn_inp = {'inp_img': img, 'lang_goal': [lang_goal[0]]}
-        attn_conf = self.attn_forward(attn_inp)
-        attn_conf = attn_conf.detach().cpu().numpy()
-        attn_conf = attn_conf[0,:,:,0]
-        argmax = np.argmax(attn_conf)
-        argmax = np.unravel_index(argmax, shape=attn_conf.shape)
-
-        p0 = np.array(argmax[:2])[None,...]
-        place_inp = {'inp_img': img, 'p0': p0, 'lang_goal': [lang_goal[0]]}
-        trans_config = self.trans_forward(place_inp, False)
-        # place_xy_theta_tensors, place_z_tensors, place_roll_tensors, place_pitch_tensors = trans_config
-        xy_theta_tensors, z_tensors, roll_tensors, pitch_tensors = trans_config
-        xy_theta_tensors = xy_theta_tensors[0].permute(1, 2, 0).detach().cpu().numpy()
-
-        angle = 2 * np.pi / xy_theta_tensors.shape[2]
-        if self.original_loss:
-            place_argmax = np.argmax(xy_theta_tensors)
-            place_argmax = np.unravel_index(place_argmax, shape=xy_theta_tensors.shape)
-            place_xy = (np.array(place_argmax[:2])*pixel_size)[::-1]+bounds[:2,0]
-            place_theta = place_argmax[2] * angle
-            place_theta_argmax = [place_argmax[2]]
-        else:
-            predict_xy = xy_theta_tensors.mean(-1)
-            place_argmax = np.argmax(predict_xy)
-            place_argmax = np.unravel_index(place_argmax, shape=predict_xy.shape)
-            place_xy = (np.array(place_argmax[:2])*pixel_size)[::-1]+bounds[:2,0]
-            predict_theta = xy_theta_tensors.mean((0,1))
-            place_theta_argmax = np.argmax(predict_theta)
-            place_theta_argmax = np.unravel_index(place_theta_argmax, shape=predict_theta.shape)
-            place_theta = place_theta_argmax[0] * angle
-        output_dict = {
-            # "pick_xy":pick_xy,
-            # "pick_theta":pick_theta,
-            "place_xy":place_xy,
-            "place_theta":place_theta
-        }
-        
-        u_window = 7
-        v_window = 7
-        theta_window = 1
-        u_min = np.maximum(place_argmax[0] - u_window, 0)
-        u_max = np.minimum(place_argmax[0] + u_window + 1, xy_theta_tensors.shape[0])
-        v_min = np.maximum(place_argmax[1] - v_window, 0)
-        v_max = np.minimum(place_argmax[1] + v_window + 1, xy_theta_tensors.shape[1])
-        theta_min = np.maximum(place_theta_argmax[0] - theta_window, 0)
-        theta_max = np.minimum(place_theta_argmax[0] + theta_window + 1, xy_theta_tensors.shape[2])
-        z_i = z_tensors[0, theta_min:theta_max, u_min:u_max, v_min:v_max]
-        # z_i = place_z_tensors[0:1, place_theta_argmax[0], place_argmax[0], place_argmax[1]]
-        z_i = self.transport.z_regressor(z_i.reshape(-1, 1)).mean()
-        place_z = z_i+bounds[2,0]
-        output_dict.update({"place_z": place_z.item()})
-
-        roll_i =  roll_tensors[0, theta_min:theta_max, u_min:u_max, v_min:v_max]
-        roll_i = self.transport.roll_regressor(roll_i.reshape(-1, 1)).mean(0)
-        roll_i = torch.argmax(roll_i).item()*angle
-        pitch_i =  pitch_tensors[0, theta_min:theta_max, u_min:u_max, v_min:v_max]
-        pitch_i = self.transport.pitch_regressor(pitch_i.reshape(-1,1)).mean(0)
-        pitch_i = torch.argmax(pitch_i).item()*angle
-        output_dict.update({"roll": roll_i, "pitch": pitch_i})
-        if draw_result:
-            import cv2
-            attn_conf = (attn_conf-attn_conf.min())/(attn_conf.max()-attn_conf.min())
-            cv2.imwrite('./results/atten_map_predict.png', np.uint8(attn_conf*255))
-            center_coordinates = (argmax[1], argmax[0])
-            # print("predict:{}".format(center_coordinates))
-            # Radius of circle
-            radius = 4
-            # Blue color in BGR
-            color = (0, 255, 255)
-            # Line thickness of 2 px
-            thickness = -1
-            # Using cv2.circle() method
-            # Draw a circle with blue line borders of thickness of 2 px
-            image = np.uint8(img[0,:,:,:3])
-            image = cv2.circle(image, center_coordinates, radius, color, thickness)
-            predict_xy = xy_theta_tensors.mean(-1)
-            predict_img = (predict_xy-predict_xy.min())/(predict_xy.max()-predict_xy.min())
-            cv2.imwrite('./results/place_map_predict.png', np.uint8(predict_img*255))
-
-            center_coordinates = (place_argmax[1],place_argmax[0])
-            color = (140,140,255)
-            radius=2
-            image_place = cv2.circle(image, center_coordinates, radius, color, thickness)
-            cv2.imwrite('./results/place_map.png', cv2.cvtColor(image_place,cv2.COLOR_RGB2BGR))
-        return img, [lang_goal[0]], None, output_dict
-
-class TransporterLangAgent(TransporterAgent_6Dof):
-    def __init__(self, name, device, cfg):
-        super().__init__(name, device, cfg)
-    
-    def _build_model(self):
-        stream_fcn = 'plain_resnet_lang'
-        self.attention = OneStreamAttentionLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=1,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-        )
-        self.transport = OneStreamTransportLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=self.n_rotations,
-            crop_size=self.crop_size,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-        )
-        self.rpz = OneStreamTransportLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=self.n_rotations,
-            crop_size=self.crop_size,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-            z_roll_pitch=True
-        )
+class ImgDepthAgent_6dof(TwoStreamClipLingUNetLatTransporterAgent):
     def attn_forward(self, inp, softmax=True):
         inp_img = inp['inp_img']
         lang_goal = ["Step"+l.split('Step')[-1] for l in inp['lang_goal']]
@@ -1012,65 +662,6 @@ class TransporterLangAgent(TransporterAgent_6Dof):
         inp_img = inp['inp_img']
         p0 = inp['p0']
         lang_goal = ["Step"+l.split('Step')[-1] for l in inp['lang_goal']]
-
-        output = self.rpz.forward(inp_img, p0, lang_goal, softmax=softmax)
-        return output
-
-class DepthLangAgent_6Dof(TransporterAgent_6Dof):
-    def __init__(self, name, device, cfg):
-        super().__init__(name, device, cfg)
-    
-    def _build_model(self):
-        stream_fcn = 'plain_resnet_lang'
-        self.attention = OneStreamAttentionLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=1,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-        )
-        self.transport = OneStreamTransportLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=self.n_rotations,
-            crop_size=self.crop_size,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-        )
-        self.rpz = OneStreamTransportLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=self.n_rotations,
-            crop_size=self.crop_size,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-            z_roll_pitch=True
-        )
-    def attn_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
-        inp_img[..., :3] = 0
-        lang_goal = inp['lang_goal']
-
-        out = self.attention.forward(inp_img, lang_goal, softmax=softmax)
-        return out
-
-    def trans_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
-        inp_img[..., :3] = 0
-        p0 = inp['p0']
-        lang_goal = inp['lang_goal']
-
-        out = self.transport.forward(inp_img, p0, lang_goal, softmax=softmax)
-        return out
-    
-    def rpz_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
-        inp_img[..., :3] = 0
-        p0 = inp['p0']
-        lang_goal = inp['lang_goal']
 
         output = self.rpz.forward(inp_img, p0, lang_goal, softmax=softmax)
         return output
@@ -1128,62 +719,6 @@ class BlindLangAgent_6Dof(TransporterAgent_6Dof):
     def rpz_forward(self, inp, softmax=True):
         inp_img = inp['inp_img']
         inp_img = np.zeros_like(inp_img)
-        p0 = inp['p0']
-        lang_goal = inp['lang_goal']
-
-        output = self.rpz.forward(inp_img, p0, lang_goal, softmax=softmax)
-        return output
-
-class ImgLangAgent_6Dof(TransporterAgent_6Dof):
-    def __init__(self, name, device, cfg):
-        super().__init__(name, device, cfg)
-    
-    def _build_model(self):
-        stream_fcn = 'clip_lingunet'
-        self.attention = OneStreamAttentionLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=1,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-        )
-        self.transport = OneStreamTransportLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=self.n_rotations,
-            crop_size=self.crop_size,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-        )
-        self.rpz = OneStreamTransportLangFusion(
-            stream_fcn=(stream_fcn, None),
-            in_shape=self.in_shape,
-            n_rotations=self.n_rotations,
-            crop_size=self.crop_size,
-            preprocess=utils.preprocess,
-            cfg=self.cfg,
-            device=self.device_type,
-            z_roll_pitch=True
-        )
-    def attn_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
-        lang_goal = inp['lang_goal']
-
-        out = self.attention.forward(inp_img, lang_goal, softmax=softmax)
-        return out
-
-    def trans_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
-        p0 = inp['p0']
-        lang_goal = inp['lang_goal']
-
-        out = self.transport.forward(inp_img, p0, lang_goal, softmax=softmax)
-        return out
-    
-    def rpz_forward(self, inp, softmax=True):
-        inp_img = inp['inp_img']
         p0 = inp['p0']
         lang_goal = inp['lang_goal']
 

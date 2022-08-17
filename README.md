@@ -11,15 +11,15 @@ Users can use AMSolver to run the current tasks in the VLMbench or build new tas
 
 ```bash
 pip install -r requirements.txt
-pip install -r cliport/requirements.txt
+pip install -r cliport/requirements.txt #Not needed if don't run 6d-cliport
 pip install -e .
 ```
 
-Then, copy the simAddOnScript_PyRep.lua in current folder into the Coppliasim folder:
+Then, copy the simAddOnScript_PyRep.lua from current folder into the Coppliasim folder:
 ```bash
-mv ./simAddOnScript_PyRep.lua /Path/To/Coppliasim
+cp ./simAddOnScript_PyRep.lua /Path/To/Coppliasim
 ```
-
+Remember that whenever you re-install the PyRep, the file will be overwritten. Then, you should copy this again.
 ## Running in headless server
 In order to render observations in headless servers, users need to open the Xorg. First, ensure that the Nvidia driver is appropriately installed. Then, running the following commands:
 
@@ -33,14 +33,15 @@ Exit the ```screen``` session (```CTRL+A, D```). Any other commands should be ru
 Now, you should find that the X servers are opened on each GPU. To render the application with the first GPU, you should add the following command before running other python codes:
 
 ```bash
-export DISPLAY=:0.0 #Keep the first number as same as the argument of startx
+export DISPLAY=:0.0 #Keep the first number as same as the argument of startx; the second number is the id of your gpu
 ```
 
 ## VLMbench Baselines
 
-The precollected dataset can be found at here: [Dataset](https://drive.google.com/drive/folders/1Qx_2_ePIqf_Z6SnpPkocUiPgFeCfePQh?usp=sharing). The dataset is under [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
+The precollected full dataset can be found at here: [Dataset](https://drive.google.com/drive/folders/1Qx_2_ePIqf_Z6SnpPkocUiPgFeCfePQh?usp=sharing).
+The smaller sample dataset can be found at here: [Sample Dtaset](https://drive.google.com/drive/folders/1jm0uLxoVYHotCi0HVZotkhpNG45lfCzW?usp=sharing). The dataset is under [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
 
-The pretrained models can be found at here: [Model](https://drive.google.com/drive/folders/1yFbWhP2iHQvY04q8LNmrpT6_5ctTcZDk?usp=sharing)
+The pretrained models of all baselines can be found at here: [Model](https://drive.google.com/drive/folders/130w8I7QTOwcBYir0Ge3dX18Y43k_URie?usp=sharing)
 
 To test pretrained 6D-CLIPort models:
 ```bash

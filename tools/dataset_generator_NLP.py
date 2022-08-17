@@ -23,6 +23,11 @@ from pathlib import Path
 from absl import app
 from absl import flags
 
+"""
+Change to different folder for different split. 
+If you want to generate unseen data, please set the colors and objects to the unseen collections in amsolver/constant.py
+"""
+
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
@@ -230,7 +235,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     amsolver_env = Environment(
         action_mode=ActionMode(),
         obs_config=obs_config,
-        headless=True)
+        headless=True) # set headless=False, if user want to visualize the simulator 
     amsolver_env.launch()
 
     task_env = None

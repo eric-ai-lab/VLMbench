@@ -20,14 +20,26 @@ from PIL import Image
 from amsolver.backend import utils
 from amsolver.backend.const import *
 import numpy as np
+import random
 
 from absl import app
 from absl import flags
 
+def set_seed(seed, torch=False):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+
+    if torch:
+        import torch
+        torch.manual_seed(seed)
+random_seed = random.randint(1, 10000)
+print(f'random seed: {random_seed}')
+set_seed(random_seed)
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('save_path',
-                    './rlbench_data/test/seen_new',
+                    './rlbench_data/test/seen',
                     'Where to save the demos.')
 flags.DEFINE_list('tasks', [
                             'place_into_shape_sorter_color',
@@ -149,11 +161,11 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
                 break
             t = tasks[task_index.value]
 
-        if FLAGS.episodes_per_task_all_variations>0:
-            FLAGS.episodes_per_task = (FLAGS.episodes_per_task_all_variations // var_target)
         task_env = amsolver_env.get_task(t)
         task_env.set_variation(my_variation_count)
 
+        if FLAGS.episodes_per_task_all_variations>0:
+            FLAGS.episodes_per_task = (FLAGS.episodes_per_task_all_variations // task_env.variation_count())
         variation_path = os.path.join(
             FLAGS.save_path, task_env.get_name(),
             VARIATIONS_FOLDER % my_variation_count)
