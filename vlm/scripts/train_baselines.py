@@ -20,12 +20,12 @@ from os.path import join, dirname, abspath, isfile
 CURRENT_DIR = dirname(abspath(__file__))
 sys.path.insert(0, join(CURRENT_DIR, '..'))  # Use local amsolver rather than installed
 
-from cliport.agent import BlindLangAgent_6Dof, DepthLangAgent_6Dof, ImgDepthAgent_6dof, TransporterLangAgent, \
-        TwoStreamClipLingUNetLatTransporterAgent, ImgLangAgent_6Dof, TwoStreamClipLingUNetLatTransporterJointAgent, TwoStreamClipLingUNetLatTransporterAgent_IGNORE
+from cliport.agent import BlindLangAgent_6Dof, ImgDepthAgent_6dof, TwoStreamClipLingUNetLatTransporterAgent
 warnings.filterwarnings('ignore')
 import torch.nn.functional as F
 
 from vlm.scripts.VLDataloader import VLM_dataset
+from vlm.scripts.eval_sampler import DistributedEvalSampler
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -51,17 +51,7 @@ class AverageMeter(object):
         return fmtstr.format(**self.__dict__)
 
 def collate_fn(batch):
-    output_batch = []
-    for info in batch:
-        bounds = info['bounds']
-        attention_points = info['attention_points']
-        target_points = info["target_points"]
-        if (attention_points[:, :2]>bounds[:2,1]).any() or (attention_points[:, :2]<bounds[:2,0]).any() \
-            or (target_points[:, :2]>bounds[:2,1]).any() or (target_points[:, :2]<bounds[:2,0]).any():
-            continue
-        else:
-            output_batch.append(info)
-    return output_batch
+    return batch
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth'):
     torch.save(state, filename+'.pth')
@@ -118,6 +108,7 @@ def main(args):
     #     except RuntimeError: print("multiprocessing method is already set.")
 
     ngpus_per_node = torch.cuda.device_count() if args.gpu_number==0 else args.gpu_number
+    args.ngpus_per_node = ngpus_per_node
     # ngpus_per_node = 5
     if args.multiprocessing_distributed:
         # Since we have ngpus_per_node processes per node, the total world_size
@@ -220,9 +211,10 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
+        val_sampler = DistributedEvalSampler(val_dataset)
     else:
         train_sampler = None
-    val_sampler = None
+        val_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
@@ -236,7 +228,8 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.wandb_entity is not None and args.rank==0:
         import wandb
-        wandb.init(project=args.wandb_project, entity=args.wandb_entity)
+        run_name = f'{args.baseline_mode}_{args.train_tasks}'
+        wandb.init(project=args.wandb_project, entity=args.wandb_entity, name=run_name, group=args.train_tasks[0])
         wandb.config.update(args)
 
     losses = {}
@@ -250,16 +243,17 @@ def main_worker(gpu, ngpus_per_node, args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
+            val_sampler.set_epoch(epoch)
 
         # train for one epoch
         train(train_loader, model, optimizer, scheduler, epoch, losses, args, timer, loss_func)
-        # dist.barrier()
-        # val_loss = val(val_loader, model, args, epoch)
+        # print(f"rank {args.rank} has finished the training")
+        dist.barrier()
+        val_loss = val(val_loader, model, args, epoch)
         if args.wandb_entity is not None and args.rank==0:
             wandb.log({k:v.avg for k,v in losses.items()}, step=epoch)
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
                 and args.rank % ngpus_per_node == 0):
-            val_loss = val(val_loader, model.module, args, epoch)
             train_tasks = "all"
             if args.train_tasks is not None:
                 train_tasks = args.train_tasks[0]
@@ -289,8 +283,6 @@ def main_worker(gpu, ngpus_per_node, args):
                         # 'optimizer' : optimizer.state_dict(),
                         'train_tasks': args.train_tasks
                     }, is_best=False, filename=save_name)
-    if args.distributed:
-        dist.barrier()
     if args.wandb_entity is not None and args.rank==0:
         wandb.finish()
 
@@ -415,17 +407,21 @@ def val(data_loader, model, args, epoch):
             losses[loss_term].update(loss_dict[loss_term].item(), args.batch_size)
         loss = sum(l.item() for l in loss_dict.values())
         total_loss.append(loss)
-    total_loss = torch.tensor(total_loss).cuda(args.gpu)
-    # if args.distributed:
-        # dist.barrier(device_ids=[args.gpu])
-        # dist.all_reduce(total_loss)
-    avg_loss = total_loss.mean().item()
+    avg_loss = torch.tensor(total_loss).mean(0, keepdim=True).cuda(args.gpu)
+    loss_list = [torch.zeros(1).cuda(args.gpu) for _ in range(args.ngpus_per_node)]
+    if args.distributed:
+        # print(f"rank {args.gpu} has finished the eval!")
+        # dist.barrier()
+        # dist.all_reduce(avg_loss)
+        dist.all_gather(loss_list, avg_loss)
+    # avg_loss = total_loss.mean().item()
     if args.rank==0:
-        tmp_str = 'Epoch [{}/{}] Val_loss: {:.4f} '.format(epoch + 1, args.epochs, avg_loss)
+        all_avg_loss = torch.tensor(loss_list).mean().item()
+        tmp_str = 'Epoch [{}/{}] Val_loss: {:.4f} '.format(epoch + 1, args.epochs, all_avg_loss)
         for loss_term in losses:
             tmp_str += '{}: {loss.val:.4f} ({loss.avg:.4f})  '.format(loss_term, loss=losses[loss_term])
         print(tmp_str)
-        return avg_loss
+        return all_avg_loss
     else:
         return None
 
@@ -436,28 +432,28 @@ if __name__=="__main__":
     parser.add_argument('--data_dir', type=str)
     parser.add_argument('--setd', type=str, default='train')
     parser.add_argument('--img_size',nargs='+', type=int, default=[360, 360])
-    parser.add_argument('--batch_size', type=int, default=8, metavar='N',
+    parser.add_argument('--batch_size', type=int, default=16, metavar='N',
                         help='input batch size for training (default: 8)')
     parser.add_argument('--workers', type=int, default=32)
     parser.add_argument('--preprocess', action='store_true', 
                 help="whether preprocess the data. Next time can directly use. Add if you don't want it.")
-    parser.add_argument('--unused_camera_list', nargs='+', default=['left_shoulder', 'right_shoulder', 'overhead','wrist'])
+    parser.add_argument('--unused_camera_list', nargs='+', default=[None])
     parser.add_argument('--use_fail_cases', action='store_true', help="add if use the fail cases")
     parser.add_argument('--sample_numbers', type=int, default=0, help="downsample from total demonstrations")
     parser.add_argument('--pin_memory', action='store_true', help="do not use if the RAM is small")
     parser.add_argument('--train_tasks', nargs='+', type=str, default = None)
     parser.add_argument('--relative', type=lambda x:bool(strtobool(x)), default=False)
-    parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=False)
+    parser.add_argument('--renew_obs', type=lambda x:bool(strtobool(x)), default=True)
     parser.add_argument('--add_low_lang', type=lambda x:bool(strtobool(x)), default=False)
     #traning
     parser.add_argument('--start_epoch', default=0, type=int)
-    parser.add_argument('--epochs', default=10, type=int,
+    parser.add_argument('--epochs', default=15, type=int,
                             help='Print log message at this many iterations (default: 10)')
     parser.add_argument('--log-freq', default=1, type=int,
                             help='Print log message at this many iterations (default: 1)')
     parser.add_argument('--gpu', default=None, type=int,
                             help='GPU id to use.')
-    parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
+    parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate for Adam (default: 0.01)')
     parser.add_argument('--checkpoint_path', default='../vlmbench/weights', type=str, metavar='PATH',
                         help='path to latest checkpoint (default: none)')
@@ -468,9 +464,9 @@ if __name__=="__main__":
     parser.add_argument('--wandb_project', type=str, default=None,  help="visualize the training. Project Name")
 
     #distributed training
-    parser.add_argument('--world-size', default=-1, type=int,
+    parser.add_argument('--world-size', default=1, type=int,
                 help='number of nodes for distributed training')
-    parser.add_argument('--rank', default=-1, type=int,
+    parser.add_argument('--rank', default=0, type=int,
                         help='node rank for distributed training')
     parser.add_argument('--dist-url', default='tcp://127.0.0.1:23456', type=str,
                         help='url used to set up distributed training')
@@ -484,6 +480,5 @@ if __name__=="__main__":
     parser.add_argument('--gpu_number', type=int, default=0)
     parser.add_argument('--gpu_start', type=int, default=0)
     args = parser.parse_args()
-    if not args.preprocess:
-        print('Not useing preprocess data.')
+
     main(args)

@@ -1,4 +1,5 @@
 import os
+from random import sample
 import numpy as np
 from torch.utils.data import Dataset
 import torch
@@ -16,7 +17,7 @@ from num2words import num2words
 
 
 class VLM_dataset(Dataset):
-    def __init__(self, root, setd, img_size=(256, 256), 
+    def __init__(self, root, setd, img_size=(360, 360), 
                     unused_camera_list = ['left_shoulder', 'right_shoulder', 'overhead','wrist'], preprocess = True, 
                     use_fail_cases = True, sample_numbers = None, train_tasks = None, random_sample = False, args=None):
         self.root = root
@@ -39,6 +40,7 @@ class VLM_dataset(Dataset):
             self.episode_list += self.fail_cases_list
         #only train selected tasks
 
+        self.valid_episodes, self.invalid_episodes = [],[]
         self.sample_numbers = sample_numbers
         self.random_sample = random_sample
         self.img_size = img_size
@@ -105,6 +107,8 @@ class VLM_dataset(Dataset):
                 self.fail_cases_list = info_dict['fail_cases_list']
 
     def __getitem__(self, index):
+        if index in self.invalid_episodes:
+            index = sample(self.valid_episodes, 1)[0]
         episode = self.episode_list[index]
         variation_path = episode.parents[1]
         task_name = episode.parents[2]
@@ -192,12 +196,23 @@ class VLM_dataset(Dataset):
             data = demos[0]
             obs = data._observations
             obs = [obs[i] for i in obs_select_inds]
-        return self.get_cliport_gt(obs, demo_temple.high_level_instructions, episode)
+        output_dict = self.get_cliport_gt(obs, demo_temple.high_level_instructions, episode)
+        if output_dict['valid']:
+            self.valid_episodes.append(index)
+        else:
+            self.invalid_episodes.append(index)
+            if len(self.valid_episodes) == 0:
+                other_indexs = list(set(range(self.__len__())) - set(self.invalid_episodes))
+                valid_index = sample(other_indexs, 1)[0]
+            else:
+                valid_index = sample(self.valid_episodes, 1)[0]
+            output_dict = self.__getitem__(valid_index)
+        return output_dict
 
     def get_cliport_gt(self, data, languages, episode):
         z_max = 1.2
         if 'door' in str(episode) or 'drawer' in str(episode):
-            z_max = 1.5
+            z_max = 1.8
         bounds = np.array([[-0.05,0.67],[-0.45, 0.45], [0.7, z_max]])
         pixel_size = 5.625e-3
         target_obj = None
@@ -289,9 +304,12 @@ class VLM_dataset(Dataset):
             "language": language_instructions,
             "bounds":bounds,
             "pixel_size":pixel_size,
-            "episode":str(episode)
+            "episode":str(episode),
+            'valid':1
         }
-
+        if (attention_points[:, :2]>bounds[:2,1]).any() or (attention_points[:, :2]<bounds[:2,0]).any() \
+            or (target_points[:, :2]>bounds[:2,1]).any() or (target_points[:, :2]<bounds[:2,0]).any():
+            output_dict['valid']=0
         return output_dict
 
     @staticmethod
