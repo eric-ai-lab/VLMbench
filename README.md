@@ -6,6 +6,12 @@
 
 This repo include the implementaions of AMSolver, VLMbench, and 6D-CLIPort.
 
+## News
+
+### 09/16/2022
+
+- The work has been accepted by NeurIPS 2022 (Datasets and Benchmarks) !
+
 ## AMSolver Install
 Users can use AMSolver to run the current tasks in the VLMbench or build new tasks. In order to run the AMSolver, you should install [Coppliasim 4.1.0](https://www.coppeliarobotics.com/previousVersions) and [PyRep](https://github.com/stepjam/PyRep) first. Then, lets install AMSolver:
 
@@ -75,3 +81,14 @@ python tools/test_config_generator.py
 All object models are saved in *vlm/object_models*. To import new objects into vlmbench, users can use "vlm/object_models/save_model.py". We recommand users first save the object models as a coppeliasim model file (.ttm), then use the extra_from_ttm function inside the save_model.py. More examples can be found in save_model.py.
 
 All tasks templates in the current vlmbench can be found in *vlm/tasks*. To generate new task templates, users can use "tools/task_builder_NLP".py for basic task template generation. Then, the varations of the task can be written as the child classes of the basic task template. More details can refer the codes of *vlm/tasks*.
+
+## Citation
+
+```
+@inproceedings{zheng2022vlmbench,
+ author = {Zheng, Kaizhi and Chen, Xiaotong and Jenkins, Odest Chadwicke and Wang, Xin Eric},
+ booktitle = {Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks},
+ title = {VLMbench: A Compositional Benchmark for Vision-and-Language Manipulation},
+ year = {2022}
+}
+```
