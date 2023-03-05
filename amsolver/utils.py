@@ -20,7 +20,7 @@ class InvalidTaskName(Exception):
     pass
 
 
-def name_to_task_class(task_file: str, parent_folder = "amsolver"):
+def name_to_task_class(task_file: str, parent_folder = "vlm"):
     name = task_file.replace('.py', '')
     class_name = ''.join([w[0].upper() + w[1:] for w in name.split('_')])
     try:

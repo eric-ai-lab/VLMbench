@@ -116,6 +116,20 @@ class ObservationConfig(object):
         self.wrist_camera_matrix = value
         self.task_low_dim_state = value
     
+    def set_image_size(self, image_size):
+        self.left_shoulder_camera.image_size = image_size
+        self.right_shoulder_camera.image_size = image_size
+        self.overhead_camera.image_size = image_size
+        self.wrist_camera.image_size = image_size
+        self.front_camera.image_size = image_size
+    
+    def set_render_mode(self, render_mode):
+        self.left_shoulder_camera.render_mode = render_mode
+        self.right_shoulder_camera.render_mode = render_mode
+        self.overhead_camera.render_mode = render_mode
+        self.wrist_camera.render_mode = render_mode
+        self.front_camera.render_mode = render_mode
+        
     def __eq__(self, o: object) -> bool:
         is_equal = True
         for attribute in self.__dict__:

@@ -8,6 +8,10 @@ This repo include the implementaions of AMSolver, VLMbench, and 6D-CLIPort.
 
 ## News
 
+### 03/04/2023
+
+- More starting codes have been added under the [examples](examples) folder!
+
 ### 09/16/2022
 
 - The work has been accepted by NeurIPS 2022 (Datasets and Benchmarks) !
@@ -64,6 +68,9 @@ To train new 6D-CLIPort models:
 ```bash
 python vlm/scripts/train_baselines.py --data_dir /Path/to/VLMbench/Dataset --train_tasks TASK_NEED_TO_TRAIN
 ```
+## Examples
+We provided several example codes for getting start. Please check the code under ```examples``` folder. The ```gym_test.py``` shows how to run the vlmbench as ```gym``` environment.
+Ensure you have gym installed (`pip install gymnasium`)
 
 ## Generate Customized Demonstrations
 
@@ -85,10 +92,12 @@ All tasks templates in the current vlmbench can be found in *vlm/tasks*. To gene
 ## Citation
 
 ```
-@inproceedings{zheng2022vlmbench,
- author = {Zheng, Kaizhi and Chen, Xiaotong and Jenkins, Odest Chadwicke and Wang, Xin Eric},
- booktitle = {Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks},
- title = {VLMbench: A Compositional Benchmark for Vision-and-Language Manipulation},
- year = {2022}
+@inproceedings{
+zheng2022vlmbench,
+title={{VLM}bench: A Compositional Benchmark for Vision-and-Language Manipulation},
+author={Kaizhi Zheng and Xiaotong Chen and Odest Jenkins and Xin Eric Wang},
+booktitle={Thirty-sixth Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+year={2022},
+url={https://openreview.net/forum?id=NAYoSV3tk9}
 }
 ```

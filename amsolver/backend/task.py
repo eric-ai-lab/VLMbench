@@ -22,7 +22,7 @@ from amsolver.backend.robot import Robot
 from amsolver.backend.utils import ReadCustomDataBlock, WriteCustomDataBlock
 from amsolver.backend.waypoints import Point, PredefinedPath, Waypoint
 
-TASKS_PATH = join(dirname(abspath(__file__)), '../tasks')
+TASKS_PATH = join(dirname(abspath(__file__)), '../../vlm/tasks')
 
 
 class Task(object):

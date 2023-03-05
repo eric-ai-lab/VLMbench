@@ -253,6 +253,7 @@ class TaskEnvironment(object):
         elif ee_action < 0.5:
             ee_action = 0.0
 
+        success_in_path= []
         if self._action_mode.arm == ArmActionMode.ABS_JOINT_VELOCITY:
 
             self._assert_action_space(arm_action,

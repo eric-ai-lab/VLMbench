@@ -1,18 +1,18 @@
 from typing import Union, Dict, Tuple
 
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 from pyrep.const import RenderMode
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.vision_sensor import VisionSensor
-from rlbench.environment import Environment
-from rlbench.action_modes import ArmActionMode, ActionMode
-from rlbench.observation_config import ObservationConfig
+from amsolver.environment import Environment
+from amsolver.action_modes import ArmActionMode, ActionMode
+from amsolver.observation_config import ObservationConfig
 import numpy as np
 
 
-class RLBenchEnv(gym.Env):
-    """An gym wrapper for RLBench."""
+class VLMBenchEnv(gym.Env):
+    """An gym wrapper for VLMbench. Copy from RLbenchEnv."""
 
     metadata = {'render.modes': ['human', 'rgb_array']}
 
@@ -35,7 +35,7 @@ class RLBenchEnv(gym.Env):
         self.env.launch()
         self.task = self.env.get_task(task_class)
 
-        _, obs = self.task.reset()
+        desc, obs = self.task.reset()
 
         self.action_space = spaces.Box(
             low=-1.0, high=1.0, shape=(self.env.action_size,))
@@ -94,8 +94,9 @@ class RLBenchEnv(gym.Env):
 
     def reset(self) -> Dict[str, np.ndarray]:
         descriptions, obs = self.task.reset()
-        del descriptions  # Not used.
-        return self._extract_obs(obs)
+        obs_info = self._extract_obs(obs)
+        obs_info['descriptions'] = descriptions
+        return obs_info
 
     def step(self, action) -> Tuple[Dict[str, np.ndarray], float, bool, dict]:
         obs, reward, terminate = self.task.step(action)
