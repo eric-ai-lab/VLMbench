@@ -48,16 +48,17 @@ export DISPLAY=:0.0 #Keep the first number as same as the argument of startx; th
 
 ## VLMbench Baselines
 
-The precollected full dataset can be found at here: [Dataset](https://drive.google.com/drive/folders/1Qx_2_ePIqf_Z6SnpPkocUiPgFeCfePQh?usp=sharing).
-The smaller sample dataset can be found at here: [Sample Dtaset](https://drive.google.com/drive/folders/1jm0uLxoVYHotCi0HVZotkhpNG45lfCzW?usp=sharing). The dataset is under [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
+The precollected test dataset can be found at here: [Dataset](https://huggingface.co/datasets/KZ-ucsc/VLMBench_dataset/tree/main).
+The smaller sample dataset can be found at here: [Sample Dtaset](https://huggingface.co/datasets/KZ-ucsc/VLMBench_dataset/tree/main). The dataset is under [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
+The pretrained models of all baselines can be found at here: [Model](https://huggingface.co/KZ-ucsc/VLMbench_Baselines/tree/main)
 
+<!--
 We also provide a script to automatically download the dataset by using [gdrive](https://github.com/prasmussen/gdrive).
 ```bash
 bash ./download_dataset.sh -s /Save/Path/For/Dataset -p Dataset_split -t Tasks
 # bash ./download_dataset.sh -h for more help on arguments
 ```
-
-The pretrained models of all baselines can be found at here: [Model](https://drive.google.com/drive/folders/130w8I7QTOwcBYir0Ge3dX18Y43k_URie?usp=sharing)
+-->
 
 To test pretrained 6D-CLIPort models:
 ```bash
